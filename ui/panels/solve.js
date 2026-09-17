@@ -17,9 +17,11 @@ export function createSolvePanel(ctx) {
   const adoptBtn = h("button", { class: "pc-btn", type: "button", onclick: () => ctx.adopt() }, "Adopt solution");
   const summary = h("div", { class: "pc-summary" });
   const list = h("div", { class: "pc-list" });
+   const scenRow = h("div", { class: "pc-row pc-theme-tabs" });
 
   const body = h("div", {},
     h("div", { class: "pc-row" }, solveBtn, resetBtn, adoptBtn),
+     scenRow,
     h("div", { class: "pc-row" }, h("label", {}, "Method"), methodSel),
     h("div", { class: "pc-row" }, h("label", {}, "Iterations"), iterIn, h("label", {}, "Tolerance"), tolIn),
     h("div", { class: "pc-row" }, h("label", {}, "Objective scale"), objIn),
@@ -42,6 +44,13 @@ export function createSolvePanel(ctx) {
     for (const i of [methodSel, iterIn, tolIn, objIn, frameChk, centerBtn, resetBtn, adoptBtn]) i.disabled = ro;
     adoptBtn.disabled = ro || !sk.points.some((p) => p.solved);
     centerBtn.disabled = ro || sk.points.filter((p) => p.fixed).length > 1 || !sk.points.length;
+     const active = ctx.activeScenario ?? null;
+     scenRow.hidden = !(sk.scenarios ?? []).length;
+     scenRow.replaceChildren(
+       h("label", {}, "Scenario"),
+       ...(sk.scenarios ?? []).map((s) => h("button", { class: `pc-btn pc-tool${s.id === active ? " pc-active" : ""}`, type: "button", title: `Show the '${s.id}' solution`,
+         onclick: () => ctx.setActiveScenario(s.id) }, s.id)),
+     );
 
     const r = ctx.result;
     summary.replaceChildren();
@@ -66,9 +75,11 @@ export function createSolvePanel(ctx) {
       ...flags,
     );
     for (const pc of r.perConstraint) {
+       if (pc.scenario != null && active != null && pc.scenario !== active) continue;
       const c = sk.constraints.find((x) => x.id === pc.id);
-      const pts = c ? c.points.map((id) => findPoint(sk, id)?.label ?? id).join(" ") : "";
-      const text = pc.status === "objective" ? `${fmt(pc.measure)} (objective)` : `${fmt(pc.measure)} vs ${fmt(pc.target)} · Δ ${fmt(pc.residual, 5)}`;
+       const pts = (c?.points ?? pc.points ?? []).map((id) => findPoint(sk, id)?.label ?? id).join(" ");
+       const op = pc.targetKind === "atLeast" ? "≥" : pc.targetKind === "atMost" ? "≤" : "vs";
+       const text = pc.status === "objective" ? `${fmt(pc.measure)} (objective)` : `${fmt(pc.measure)} ${op} ${fmt(pc.target)} · Δ ${fmt(pc.residual, 5)}`;
       list.append(h("div", { class: "pc-item", onclick: () => c && ctx.select(c.points) }, statusDot(pc.status), h("span", { class: "pc-item-main" }, h("b", {}, pc.type), ` ${pts}`), h("span", { class: "pc-muted" }, text)));
     }
   }

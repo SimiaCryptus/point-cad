@@ -74,6 +74,7 @@
 
 .pc-point { fill: var(--pc-point); stroke: var(--pc-view-bg); stroke-width: 1.5; cursor: pointer; }
 .pc-point.pc-fixed { fill: var(--pc-bad); }
+.pc-point.pc-hollow { fill: none; stroke: var(--pc-point); stroke-width: 2; }
 .pc-point.pc-macro, .pc-label.pc-macro { opacity: 0.45; }
 .pc-selection-ring { fill: none; stroke: var(--pc-sel); stroke-width: 2; }
 .pc-label { font-size: 12px; fill: var(--pc-fg); pointer-events: none; }
@@ -84,6 +85,7 @@
 
 .pc-glyph { fill: none; stroke: var(--pc-muted); stroke-width: 1.5; }
 .pc-leg { stroke-width: 1; opacity: 0.6; }
+.pc-lock { stroke-dasharray: 2 4; }
 .pc-glyph-label { font-size: 11px; fill: var(--pc-muted); pointer-events: none; }
 .pc-glyph.pc-status-ok, .pc-dot.pc-status-ok, .pc-result.pc-status-ok { stroke: var(--pc-ok); color: var(--pc-ok); }
 .pc-glyph.pc-status-warn, .pc-dot.pc-status-warn { stroke: var(--pc-warn); }
@@ -110,6 +112,14 @@
 .pc-window-close:hover { color: var(--pc-bad); background: color-mix(in srgb, var(--pc-bad) 12%, transparent); }
 .pc-window .pc-panel-body { flex: 1; overflow: auto; padding: 6px 12px 12px; }
 .pc-window.pc-dirty .pc-panel-title::after { content: " •"; color: var(--pc-warn); }
+/* windows whose body fills the available height (script, preview) */
+.pc-window .pc-panel-body.pc-panel-fill { display: flex; flex-direction: column; }
+.pc-fill { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.pc-fill > * { flex: none; }
+.pc-fill > .pc-grow, .pc-pane > .pc-grow { flex: 1 1 auto; min-height: 0; }
+.pc-pane { display: flex; flex-direction: column; min-height: 0; gap: 4px; }
+.pc-tabs { gap: 4px; }
+.pc-spacer { flex: 1; }
 
 .pc-table { width: 100%; border-collapse: collapse; }
 .pc-table th { text-align: left; font-weight: 500; color: var(--pc-muted); padding: 2px 4px; font-size: 11px; }
@@ -134,6 +144,8 @@
 .pc-row label { color: var(--pc-muted); font-size: 12px; min-width: 3.5em; }
 .pc-row label.pc-check { display: inline-flex; align-items: center; gap: 4px; color: var(--pc-fg); min-width: 0; cursor: pointer; }
 .pc-form { border-top: 1px dashed var(--pc-border); margin-top: 8px; padding-top: 6px; }
+.pc-form-title { font-size: 12px; margin: 2px 0; }
+.pc-editing .pc-form { border-top-color: var(--pc-accent); }
 .pc-pts { display: flex; gap: 4px; }
 .pc-muted { color: var(--pc-muted); }
 .pc-empty { padding: 4px 0; font-style: italic; }
@@ -144,6 +156,7 @@
 .pc-item:hover { background: color-mix(in srgb, var(--pc-accent) 8%, transparent); }
 .pc-item.pc-disabled { opacity: 0.5; }
 .pc-item.pc-macro { opacity: 0.6; }
+.pc-item.pc-item-selected { background: color-mix(in srgb, var(--pc-accent) 15%, transparent); box-shadow: inset 0 0 0 1px var(--pc-accent); }
 .pc-item-main { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pc-item-detail { font-size: 11px; white-space: nowrap; }
 .pc-target { color: var(--pc-accent); }
@@ -161,9 +174,34 @@
 .pc-flag-warn { background: color-mix(in srgb, var(--pc-warn) 15%, transparent); }
 .pc-flag-info { background: color-mix(in srgb, var(--pc-accent) 10%, transparent); }
 
-.pc-script { width: 100%; box-sizing: border-box; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: inherit; background: var(--pc-bg); border: 1px solid var(--pc-border); border-radius: 4px; padding: 6px; resize: vertical; white-space: pre; }
+.pc-script { width: 100%; min-height: 5em; box-sizing: border-box; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: inherit; background: var(--pc-bg); border: 1px solid var(--pc-border); border-radius: 4px; padding: 6px; resize: none; overflow: auto; white-space: pre; }
 .pc-console { width: 100%; box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .pc-errors { margin: 4px 0; }
 .pc-error { color: var(--pc-bad); font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; }
 
 .pc-readonly .pc-form, .pc-readonly .pc-icon { display: none; }
+/* ---- scenarios / theme designer ---- */
+.pc-theme-tabs { gap: 4px; }
+.pc-swatches { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.pc-swatch { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--pc-border); cursor: pointer; }
+.pc-swatch-chip { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(0, 0, 0, 0.15); flex: none; }
+.pc-swatch-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-swatch-meta b { font-size: 13px; }
+.pc-swatch-dots { display: flex; gap: 3px; flex-wrap: wrap; max-width: 60px; justify-content: flex-end; }
+.pc-css { margin: 6px 0 0; max-height: 160px; overflow: auto; font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace; background: var(--pc-bg); border: 1px solid var(--pc-border); border-radius: 4px; padding: 6px; white-space: pre; }
+/* ---- preview window ---- */
+.pc-preview-frame { display: block; width: 100%; min-height: 120px; border: 1px solid var(--pc-border); border-radius: 4px; background: #fff; box-sizing: border-box; }
+.pc-template { width: 100%; min-height: 5em; box-sizing: border-box; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: inherit; background: var(--pc-bg); border: 1px solid var(--pc-border); border-radius: 4px; padding: 6px; resize: none; overflow: auto; white-space: pre; }
+.pc-preview-status { font-size: 12px; min-height: 0; }
+/* ---- handoff window ---- */
+.pc-handoff { display: flex; flex-direction: column; gap: 6px; }
+.pc-doc-section { border: 1px solid var(--pc-border); border-radius: 6px; padding: 4px 8px; background: var(--pc-bg); }
+.pc-doc-section > summary { cursor: pointer; font-weight: 600; padding: 2px 0; }
+.pc-doc-status { min-height: 1.2em; font-size: 12px; }
+.pc-field { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; }
+.pc-field > label { color: var(--pc-muted); font-size: 12px; }
+.pc-field > .pc-in, .pc-field > .pc-template { width: 100%; box-sizing: border-box; resize: vertical; }
+.pc-doc-tokens { max-height: 220px; overflow: auto; }
+.pc-doc-tokens code { font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace; }
+.pc-doc-tokens tr { cursor: pointer; }
+.pc-doc-tokens tr:hover td { background: color-mix(in srgb, var(--pc-accent) 8%, transparent); }

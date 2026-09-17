@@ -12,7 +12,16 @@ export class PcsError extends Error {
 const NUMBER_RE = /^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/;
 const IDENT_START = /[A-Za-z_]/;
 const IDENT_RE = /^[A-Za-z_][A-Za-z0-9_]*/;
-const PUNCT = new Set(["(", ")", ",", "+", "-", "*", "/", "=", "{", "}"]);
+const PUNCT = new Set(["(", ")", ",", "+", "-", "*", "/", "=", "{", "}", "%"]);
+const PUNCT2 = new Set(["->", ">=", "<="]);
+
+// `#rrggbb` colour literals share their prefix with comments. A hex literal
+// is only recognised where a value is expected (after `at`, `to`, `(`, `,`,
+// an operator or a comparison); everywhere else `#` starts a comment.
+const HEX_RE = /^#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![0-9A-Za-z_])/;
+const HEX_AFTER_PUNCT = new Set(["(", ",", "=", "+", "-", "*", "/", ">=", "<="]);
+const hexAllowed = (prev) =>
+  !!prev && ((prev.type === "ident" && (prev.value === "at" || prev.value === "to")) || (prev.type === "punct" && HEX_AFTER_PUNCT.has(prev.value)));
 
 /**
  * Tokenize a PCS source string. Newlines are emitted as tokens (they act as
@@ -45,6 +54,13 @@ export function tokenize(src) {
       continue;
     }
     if (ch === "#") {
+      const m = hexAllowed(tokens[tokens.length - 1]) ? HEX_RE.exec(src.slice(i)) : null;
+      if (m) {
+        i += m[0].length;
+        col += m[0].length;
+        push("hex", m[0], start, l, c);
+        continue;
+      }
       while (i < src.length && src[i] !== "\n") {
         i++;
         col++;
@@ -91,10 +107,11 @@ export function tokenize(src) {
       push("ident", m[0], start, l, c);
       continue;
     }
-    if (ch === "-" && src[i + 1] === ">") {
+    const two = src.slice(i, i + 2);
+    if (PUNCT2.has(two)) {
       i += 2;
       col += 2;
-      push("punct", "->", start, l, c);
+      push("punct", two, start, l, c);
       continue;
     }
     if (PUNCT.has(ch)) {

@@ -301,7 +301,7 @@ export class Viewport {
       const ev = evals.get(c.id);
       const cls = `pc-status-${ev?.status ?? "none"}${c.enabled === false ? " pc-disabled" : ""}`;
       const kind = this.ctx.registry.hasConstraintKind(c.type) ? this.ctx.registry.getConstraintKind(c.type) : null;
-      const label = ev?.measure != null ? fmt(ev.measure, 2) : "";
+       const label = ev?.measure != null && !Array.isArray(ev.measure) ? fmt(ev.measure, 2) : "";
       if (kind?.glyph) {
         kind.glyph({ g: gGlyph, coords, constraint: c, evaluation: ev, viewport: this, frame: fr, svgEl, cls });
       } else if (coords.length === 2) this.drawDistance(gGlyph, fr, coords, label, cls);
@@ -321,12 +321,16 @@ export class Viewport {
       }
       if (!s) continue;
       const selected = sel.has(p.id);
-      const cls = `pc-point${p.fixed ? " pc-fixed" : ""}${selected ? " pc-selected" : ""}${p.macro ? " pc-macro" : ""}`;
+       const hollow = p.role === "orientation" || p.export === false;
+       const cls = `pc-point${p.fixed ? " pc-fixed" : ""}${selected ? " pc-selected" : ""}${p.macro ? " pc-macro" : ""}${hollow ? " pc-hollow" : ""}`;
       if (selected) gPts.append(svgEl("circle", { cx: s.x, cy: s.y, r: 10, class: "pc-selection-ring" }));
       const marker = p.fixed
         ? svgEl("rect", { x: s.x - 5, y: s.y - 5, width: 10, height: 10, class: cls })
         : svgEl("circle", { cx: s.x, cy: s.y, r: 5.5, class: cls });
       marker.dataset.point = p.id;
+       // colour spaces paint each marker with the colour it represents
+       const swatch = typeof space.toCSS === "function" ? space.toCSS(p.solved ?? p.seed) : null;
+       if (swatch) marker.style[hollow ? "stroke" : "fill"] = swatch;
       gPts.append(marker);
       if (sk.view.showLabels) gPts.append(svgEl("text", { x: s.x + 8, y: s.y - 8, class: `pc-label${p.macro ? " pc-macro" : ""}` }, p.label));
       if (selected && !this.ctx.readonly && !this.ctx.pick) this.drawHandles(gPts, fr, p.id, pos, extent);

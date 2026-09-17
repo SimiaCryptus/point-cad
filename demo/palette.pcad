@@ -1,0 +1,72 @@
+# palette.pcad — one colour model, two themes (light / dark)
+space oklab
+units none deg
+gamut srgb                               # every exported colour must stay inside sRGB
+
+var stepL   = -0.04                      # lightness step between surfaces (per theme)
+var mutedC  = 4.5   locked               # contrast ratio for secondary text
+var accentC = 0.12  shared               # accent chroma: one value for every theme
+
+# ---- inputs -------------------------------------------------------------
+point canvas      at oklch(98% 0.005 90)   anchor
+point brand       at #3b5bdb               anchor
+point warmth      at oklch(70% 0.06 70)    orientation     # hue the surfaces lean toward
+point readingGray at oklch(50% 0.01 260)   orientation     # hue and chroma for all text
+
+# ---- outputs ------------------------------------------------------------
+point surface1  at oklch(94% 0.006 88)  derived
+point surface2  at oklch(90% 0.007 86)  derived
+point surface3  at oklch(86% 0.008 84)  derived
+point text      at oklch(25% 0.01 260)  derived
+point textMuted at oklch(45% 0.01 260)  derived
+point border    at oklch(70% 0.01 260)  derived
+point accent    at oklch(60% 0.12 80)   derived
+point link      at oklch(45% 0.15 262)  derived
+
+# surfaces: even lightness steps, warm hue, a touch more chroma than the canvas
+dL canvas surface1 = stepL
+dL surface1 surface2 = stepL
+dL surface2 surface3 = stepL
+lock H warmth surface1 surface2 surface3 weight 0.3
+lock C surface1 surface2 surface3
+dC canvas surface3 = 0.01
+
+# text: locked to the reading hue, contrast decides the lightness
+lock H readingGray text textMuted border
+lock C readingGray text textMuted border
+contrast text canvas      >= 7             # AAA body text
+contrast textMuted canvas >= mutedC        # AA
+contrast border canvas    >= 3             # UI component minimum
+distance canvas text      -> min weight 0.05   # …but no further from the canvas than needed
+distance canvas textMuted -> min weight 0.05
+distance canvas border    -> min weight 0.05
+
+# accents
+dH brand accent = 180                      # complementary hue
+lock L brand accent
+C accent = accentC
+contrast accent canvas >= 3
+lock H brand link
+contrast link canvas >= 4.5
+distance link brand -> min
+
+# ---- themes -------------------------------------------------------------
+theme light {
+  canvas at oklch(98% 0.005 90)
+  brand  at #3b5bdb
+}
+theme dark {
+  canvas      at oklch(16% 0.01 260)
+  brand       at oklch(72% 0.14 262)
+  warmth      at oklch(40% 0.03 260)
+  readingGray at oklch(85% 0.01 260)
+  var stepL = 0.03
+  text      at oklch(92% 0.01 260)         # seeds only: put the outputs on the light side
+  textMuted at oklch(75% 0.01 260)
+  border    at oklch(40% 0.01 260)
+  link      at oklch(80% 0.12 262)
+}
+
+solver gauss-newton iterations 200 tolerance 1e-6
+view camera (300, 250, 400) target (0, 0, 200) up (0, 0, 1) perspective
+view grid none show labels axes hide seeds

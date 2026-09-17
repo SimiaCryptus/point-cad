@@ -1,22 +1,25 @@
 // PCS parser: statements -> model operations on a working copy of a sketch.
-// Constraint kinds are looked up in the registry, so extensions extend the
-// grammar by registering a kind.
+// Constraint kinds and extra statements are looked up in the registry, so
+// extensions extend the grammar by registering a kind or a statement.
 import { tokenize, PcsError } from "./lexer.js";
 import * as M from "../core/model.js";
-import { registry as defaultRegistry } from "../core/registry.js";
+import { registry as defaultRegistry, arityRange, arityText } from "../core/registry.js";
 import { applyCommand, COMMANDS } from "./commands.js";
 import { findMacro, defineMacro, nextMacroInstance, expandMacroTokens } from "./macros.js";
 
-export const STATEMENT_WORDS = new Set(["space", "units", "var", "point", "def", "solver", "view", ...COMMANDS]);
+export const STATEMENT_WORDS = new Set(["space", "units", "var", "point", "def", "scenario", "solver", "view", ...COMMANDS]);
 export const RESERVED = new Set([
   ...STATEMENT_WORDS,
-  "at", "fixed", "free", "locked", "label", "id", "weight", "note", "disabled", "enabled",
-  "min", "max", "minimize", "maximize", "to", "camera", "target", "up", "perspective", "orthographic",
-   "fov", "grid", "show", "hide", "iterations", "tolerance", "objective", "method", "frame",
+  "at", "fixed", "free", "locked", "shared", "label", "id", "weight", "note", "disabled", "enabled",
+  "min", "max", "minimize", "maximize", "to", "scenarios", "camera", "target", "up", "perspective", "orthographic",
+  "fov", "grid", "show", "hide", "iterations", "tolerance", "objective", "method", "frame",
 ]);
+const META_WORDS = new Set(["weight", "note", "disabled", "enabled", "id"]);
 
 const describe = (tok) =>
   tok.type === "eof" ? "end of input" : tok.type === "newline" ? "end of line" : tok.type === "string" ? `"${tok.value}"` : `'${tok.value}'`;
+
+const sameJSON = (a, b) => JSON.stringify(a ?? {}) === JSON.stringify(b ?? {});
 
 /**
  * Parse PCS text against a sketch. The sketch is cloned first; the caller
@@ -72,8 +75,21 @@ export class Parser {
   skipLine() {
     while (!this.is("newline") && !this.is("eof")) this.next();
   }
+  /** Skip to the `}` closing a block whose `{` has already been consumed. */
+  skipBlock(depth = 1) {
+    while (!this.is("eof")) {
+      const tk = this.next();
+      if (tk.type === "punct" && tk.value === "{") depth++;
+      else if (tk.type === "punct" && tk.value === "}" && --depth === 0) return;
+    }
+  }
   atEnd() {
     return this.is("newline") || this.is("eof");
+  }
+  space() {
+    const reg = this.ctx.registry;
+    const id = this.ctx.sketch.space;
+    return reg.hasSpace(id) ? reg.getSpace(id) : null;
   }
 
   // ---- driver ----------------------------------------------------------
@@ -107,14 +123,17 @@ export class Parser {
       case "var": return this.parseVar();
       case "point": return this.parsePoint();
       case "def": return this.parseDef();
+      case "scenario": return this.parseScenario();
       case "solver": return this.parseSolver();
       case "view": return this.parseView();
-     case "solve": case "reset": case "adopt": case "center": case "delete": case "set": case "move":
+      case "solve": case "reset": case "adopt": case "center": case "delete": case "set": case "move":
         return this.parseCommand();
       default:
         break;
     }
-    if (this.ctx.registry.hasConstraintKind(w)) return this.parseConstraint();
+    const reg = this.ctx.registry;
+    if (reg.hasStatement(w)) return reg.getStatement(w).parse(this, this.ctx);
+    if (reg.hasConstraintKind(w)) return this.parseConstraint();
     if (findMacro(this.ctx.sketch, w)) return this.parseMacroCall();
     throw this.error(`Unknown statement '${w}'`);
   }
@@ -150,6 +169,10 @@ export class Parser {
       this.next();
       return Number(tok.value);
     }
+    if (tok.type === "hex") {
+      this.next();
+      return this.literal("hex", [tok.value], tok);
+    }
     if (tok.type === "punct" && tok.value === "(") {
       this.next();
       const first = this.parseExpr();
@@ -164,6 +187,10 @@ export class Parser {
       return first;
     }
     if (tok.type === "ident") {
+      const fns = this.space()?.literalFunctions;
+      if (Array.isArray(fns) && fns.includes(tok.value) && this.peek(1).type === "punct" && this.peek(1).value === "(") {
+        return this.parseLiteralCall();
+      }
       const p = M.findPoint(this.ctx.sketch, tok.value);
       if (p) {
         this.next();
@@ -177,6 +204,45 @@ export class Parser {
       throw this.error(`Unknown identifier '${tok.value}'`);
     }
     throw this.error(`Expected an expression, got ${describe(tok)}`);
+  }
+  /**
+   * Space-provided literal such as `oklch(70% 0.14 262)` or `rgb(59 91 219)`.
+   * Components may be separated by spaces or commas and carry a `%`; an
+   * optional `/ alpha` tail is accepted and ignored.
+   */
+  parseLiteralCall() {
+    const nameTok = this.next();
+    this.expect("punct", "(");
+    const args = [];
+    let alpha = false;
+    while (!this.is("punct", ")")) {
+      if (this.atEnd()) throw this.error(`Unterminated ${nameTok.value}(...) literal`, nameTok);
+      if (this.accept("punct", ",")) continue;
+      if (this.accept("punct", "/")) {
+        alpha = true;
+        continue;
+      }
+      let sign = 1;
+      if (this.accept("punct", "-")) sign = -1;
+      else this.accept("punct", "+");
+      const numTok = this.expect("number", undefined, `${nameTok.value}() component`);
+      const percent = !!this.accept("punct", "%");
+      if (!alpha) args.push({ value: sign * Number(numTok.value), percent });
+    }
+    this.expect("punct", ")");
+    return this.literal(nameTok.value, args, nameTok);
+  }
+  literal(name, args, tok) {
+    const space = this.space();
+    if (typeof space?.parseLiteral !== "function") throw this.error(`Space '${this.ctx.sketch.space}' has no ${name} literals`, tok);
+    let coords;
+    try {
+      coords = space.parseLiteral(name, args);
+    } catch (e) {
+      throw this.error(e.message, tok);
+    }
+    if (!Array.isArray(coords)) throw this.error(`Invalid ${name} literal`, tok);
+    return coords;
   }
   applyOp(op, a, b) {
     const na = typeof a === "number";
@@ -204,7 +270,9 @@ export class Parser {
   }
   parseName(what) {
     const tok = this.expect("ident", undefined, what);
-    if (RESERVED.has(tok.value) || this.ctx.registry.hasConstraintKind(tok.value)) {
+    const reg = this.ctx.registry;
+    const kindReserved = reg.hasConstraintKind(tok.value) && reg.kindSupportsSpace(reg.getConstraintKind(tok.value), this.ctx.sketch.space);
+    if (RESERVED.has(tok.value) || kindReserved || reg.hasStatement(tok.value) || reg.pointRoles.has(tok.value)) {
       throw this.error(`'${tok.value}' is a reserved word and cannot be used as a ${what}`, tok);
     }
     return tok;
@@ -234,11 +302,13 @@ export class Parser {
       const nameTok = this.parseName("variable name");
       let value = null;
       let locked = null;
+      let shared = null;
       let explicitId = null;
       if (this.accept("punct", "=")) value = this.parseNumber("variable value");
       for (;;) {
         if (this.acceptIdent("locked")) locked = true;
         else if (this.acceptIdent("free")) locked = false;
+        else if (this.acceptIdent("shared")) shared = true;
         else if (this.acceptIdent("id")) explicitId = this.expect("ident", undefined, "id").value;
         else break;
       }
@@ -249,6 +319,7 @@ export class Parser {
           delete existing.solved;
         }
         if (locked !== null) existing.locked = locked;
+        if (shared !== null) existing.shared = shared;
         existing.name = nameTok.value;
         this.ctx.ops.push({ op: "var", id: existing.id, created: false });
       } else {
@@ -257,6 +328,7 @@ export class Parser {
           name: nameTok.value,
           value: value ?? 0,
           locked: locked ?? false,
+          shared: shared ?? false,
           macro: this.ctx.macroInstance ?? undefined,
         });
         this.ctx.ops.push({ op: "var", id: v.id, created: true });
@@ -267,27 +339,37 @@ export class Parser {
   parsePoint() {
     this.next();
     const sk = this.ctx.sketch;
-    const dim = this.ctx.registry.getSpace(sk.space).dim;
+    const reg = this.ctx.registry;
+    const dim = reg.getSpace(sk.space).dim;
     const nameTok = this.parseName("point name");
     this.expect("ident", "at", "'at'");
     const seed = this.parseVector("point seed", dim);
     let fixed = null;
     let label = null;
     let explicitId = null;
+    let role = null;
     for (;;) {
       if (this.acceptIdent("fixed")) fixed = true;
       else if (this.acceptIdent("free")) fixed = false;
       else if (this.acceptIdent("label")) label = this.expect("string", undefined, "label string").value;
       else if (this.acceptIdent("id")) explicitId = this.expect("ident", undefined, "id").value;
+      else if (this.is("ident") && reg.pointRoles.has(this.peek().value)) role = this.next().value;
       else break;
     }
+    const roleDef = role ? reg.pointRoles.get(role) : null;
     const existing = (explicitId && sk.points.find((p) => p.id === explicitId)) || M.findPoint(sk, nameTok.value);
     if (existing) {
       if (!M.sameCoords(existing.seed, seed)) {
         existing.seed = seed;
         delete existing.solved;
       }
+      if (roleDef) {
+        existing.role = role;
+        if (roleDef.export === false) existing.export = false;
+        else delete existing.export;
+      }
       if (fixed !== null) existing.fixed = fixed;
+      else if (roleDef) existing.fixed = !!roleDef.fixed;
       if (label !== null) existing.label = label;
       else if (existing.id !== nameTok.value) existing.label = nameTok.value;
       this.ctx.ops.push({ op: "point", id: existing.id, created: false });
@@ -298,45 +380,71 @@ export class Parser {
         id,
         label: label ?? nameTok.value,
         seed,
-        fixed: fixed ?? false,
+        fixed: fixed ?? roleDef?.fixed ?? false,
+        role: role ?? undefined,
+        export: roleDef ? roleDef.export !== false : undefined,
         macro: this.ctx.macroInstance ?? undefined,
       });
       this.ctx.ops.push({ op: "point", id: p.id, created: true });
     }
   }
 
+  /**
+   * `KIND params… points… target meta…`. Points beyond the kind's minimum
+   * are consumed while the next word is a point (variadic kinds); the
+   * target may be `=`, `>=`, `<=` (number or variable) or `->` min/max, and
+   * may be omitted when the kind declares a `defaultTarget`.
+   */
   parseConstraint() {
     const sk = this.ctx.sketch;
+    const reg = this.ctx.registry;
     const kindTok = this.next();
-    const kind = this.ctx.registry.getConstraintKind(kindTok.value);
-    if (!this.ctx.registry.kindSupportsSpace(kind, sk.space)) {
-      throw this.error(`'${kind.id}' is not available in space '${sk.space}'`, kindTok);
+    const kind = reg.getConstraintKind(kindTok.value);
+    if (!reg.kindSupportsSpace(kind, sk.space)) {
+      const why = kind.requires?.length ? ` (needs ${kind.requires.join(", ")})` : "";
+      throw this.error(`'${kind.id}' is not available in space '${sk.space}'${why}`, kindTok);
     }
+    const params = {};
+    for (const prm of kind.params ?? []) {
+      if (prm.type === "number") params[prm.name] = this.parseNumber(prm.name);
+      else {
+        const t = this.expect("ident", undefined, `${prm.name} (${kind.syntax})`);
+        if (Array.isArray(prm.values) && !prm.values.includes(t.value)) {
+          throw this.error(`Expected one of ${prm.values.join(", ")} for ${prm.name}, got '${t.value}'`, t);
+        }
+        params[prm.name] = t.value;
+      }
+    }
+    const range = arityRange(kind);
     const points = [];
-    for (let k = 0; k < kind.arity.points; k++) {
-      const tok = this.expect("ident", undefined, `point ${k + 1} of ${kind.arity.points} (${kind.syntax})`);
+    while (points.length < range.max) {
+      if (points.length >= range.min && (!this.is("ident") || META_WORDS.has(this.peek().value))) break;
+      const tok = this.expect("ident", undefined, `point ${points.length + 1} of ${arityText(kind)} (${kind.syntax})`);
       const p = M.findPoint(sk, tok.value);
       if (!p) throw this.error(`Unknown point '${tok.value}'`, tok);
       points.push(p.id);
     }
-    let target;
-    if (this.accept("punct", "=")) {
+    const bound = (targetKind) => {
       if (this.is("ident")) {
         const tok = this.next();
         const v = M.findVariable(sk, tok.value);
         if (!v) throw this.error(`Unknown variable '${tok.value}'`, tok);
-        target = { kind: "variable", ref: v.id };
-      } else {
-        target = { kind: "value", value: this.parseNumber("target value") };
+        return { kind: targetKind === "value" ? "variable" : targetKind, ref: v.id };
       }
-    } else if (this.accept("punct", "->")) {
+      return { kind: targetKind, value: this.parseNumber("target value") };
+    };
+    let target;
+    if (this.accept("punct", "=")) target = bound("value");
+    else if (this.accept("punct", ">=")) target = bound("atLeast");
+    else if (this.accept("punct", "<=")) target = bound("atMost");
+    else if (this.accept("punct", "->")) {
       const tok = this.expect("ident", undefined, "'min' or 'max'");
       if (tok.value === "min" || tok.value === "minimize") target = { kind: "minimize" };
       else if (tok.value === "max" || tok.value === "maximize") target = { kind: "maximize" };
       else throw this.error(`Expected 'min' or 'max', got ${describe(tok)}`, tok);
-    } else {
-      throw this.error(`Expected '=' or '->' after ${kind.id} points, got ${describe(this.peek())}`);
-    }
+    } else if (kind.defaultTarget) target = { ...kind.defaultTarget };
+    else throw this.error(`Expected '=', '>=', '<=' or '->' after ${kind.id} points, got ${describe(this.peek())}`);
+
     const meta = { weight: null, note: null, enabled: null, id: null };
     for (;;) {
       if (this.acceptIdent("weight")) meta.weight = this.parseNumber("weight");
@@ -348,11 +456,15 @@ export class Parser {
     }
     const existing = meta.id
       ? M.findConstraint(sk, meta.id)
-      : sk.constraints.find((c) => c.type === kind.id && c.points.length === points.length && c.points.every((id, i) => id === points[i]));
+      : sk.constraints.find(
+        (c) => c.type === kind.id && c.points.length === points.length && c.points.every((id, i) => id === points[i]) && sameJSON(c.params, params),
+      );
     if (existing) {
       existing.type = kind.id;
       existing.points = points;
       existing.target = target;
+      if (Object.keys(params).length) existing.params = params;
+      else delete existing.params;
       if (meta.weight !== null) existing.weight = meta.weight;
       if (meta.enabled !== null) existing.enabled = meta.enabled;
       if (meta.note !== null) existing.note = meta.note;
@@ -362,6 +474,7 @@ export class Parser {
         id: meta.id ?? undefined,
         type: kind.id,
         points,
+        params,
         target,
         weight: meta.weight ?? 1,
         enabled: meta.enabled ?? true,
@@ -409,7 +522,7 @@ export class Parser {
     if (this.ctx.depth > 16) throw this.error("Macro expansion too deep", nameTok);
     const args = [];
     for (let k = 0; k < def.params.length; k++) {
-      if (!(this.is("ident") || this.is("number"))) {
+      if (!(this.is("ident") || this.is("number") || this.is("hex"))) {
         throw this.error(`Macro '${def.name}' expects ${def.params.length} arguments (${def.params.join(", ")}), got ${k}`, nameTok);
       }
       args.push(this.next());
@@ -431,10 +544,61 @@ export class Parser {
     this.ctx.ops.push({ op: "macro", id: instance, name: def.name, args: argValues });
   }
 
+  /**
+   * `scenario NAME { [point] P at vec …  var V = number … }` — a named set of
+   * overrides solved as its own block of a stacked problem (§6.3 of the
+   * theme notes). Extensions may register aliases such as `theme`.
+   */
+  parseScenario() {
+    const sk = this.ctx.sketch;
+    const kwTok = this.next();
+    const idTok = this.parseName(`${kwTok.value} name`);
+    const dim = this.ctx.registry.getSpace(sk.space).dim;
+    const points = {};
+    const variables = {};
+    this.skipNewlines();
+    this.expect("punct", "{");
+    try {
+      for (;;) {
+        this.skipNewlines();
+        if (this.accept("punct", "}")) break;
+        if (this.is("eof")) throw this.error(`Unterminated ${kwTok.value} '${idTok.value}': missing '}'`, kwTok);
+        if (this.acceptIdent("var")) {
+          const nameTok = this.expect("ident", undefined, "variable name");
+          const v = M.findVariable(sk, nameTok.value);
+          if (!v) throw this.error(`Unknown variable '${nameTok.value}'`, nameTok);
+          this.expect("punct", "=");
+          variables[v.id] = this.parseNumber("variable value");
+        } else {
+          this.acceptIdent("point");
+          const nameTok = this.expect("ident", undefined, "point name");
+          const p = M.findPoint(sk, nameTok.value);
+          if (!p) throw this.error(`Unknown point '${nameTok.value}'`, nameTok);
+          this.expect("ident", "at", "'at'");
+          points[p.id] = this.parseVector(`position of '${nameTok.value}'`, dim);
+          // A scenario override only moves coordinates, but its lines are
+          // usually copied from the model, so a trailing role word
+          // (`derived`, `anchor`, …) or `label "…"` is accepted and ignored.
+          for (;;) {
+            if (this.is("ident") && this.ctx.registry.pointRoles.has(this.peek().value)) this.next();
+            else if (this.acceptIdent("label")) this.expect("string", undefined, "label string");
+            else break;
+          }
+        }
+        if (!this.atEnd() && !this.is("punct", "}")) throw this.error(`Unexpected ${describe(this.peek())} in ${kwTok.value} block`);
+      }
+    } catch (e) {
+      this.skipBlock();
+      throw e;
+    }
+    M.defineScenario(sk, { id: idTok.value, points, variables });
+    this.ctx.ops.push({ op: "scenario", id: idTok.value });
+  }
+
   parseSolver() {
     this.next();
     const s = this.ctx.sketch.solver;
-   const OPTS = new Set(["iterations", "tolerance", "objective", "method", "frame"]);
+    const OPTS = new Set(["iterations", "tolerance", "objective", "method", "frame"]);
     const methodName = () => {
       let name = this.expect("ident", undefined, "solver method").value;
       while (this.accept("punct", "-")) name += "-" + this.expect("ident", undefined, "solver method").value;
@@ -446,13 +610,13 @@ export class Parser {
       if (w === "iterations") s.maxIterations = Math.max(1, Math.round(this.parseNumber("iterations")));
       else if (w === "tolerance") s.tolerance = this.parseNumber("tolerance");
       else if (w === "objective") s.objectiveScale = this.parseNumber("objective scale");
-     else if (w === "frame") {
-       const tok = this.expect("ident", undefined, "'auto' or 'none'");
-       if (tok.value !== "auto" && tok.value !== "none") {
-         throw this.error(`Expected 'auto' or 'none' after 'frame', got ${describe(tok)}`, tok);
-       }
-       s.frame = tok.value;
-     } else s.method = methodName();
+      else if (w === "frame") {
+        const tok = this.expect("ident", undefined, "'auto' or 'none'");
+        if (tok.value !== "auto" && tok.value !== "none") {
+          throw this.error(`Expected 'auto' or 'none' after 'frame', got ${describe(tok)}`, tok);
+        }
+        s.frame = tok.value;
+      } else s.method = methodName();
     }
     this.ctx.ops.push({ op: "solver" });
   }
@@ -490,7 +654,16 @@ export class Parser {
     const sk = this.ctx.sketch;
     let cmd;
     switch (tok.value) {
-     case "solve": case "reset": case "adopt": case "center":
+      case "solve":
+        cmd = { op: "solve" };
+        if (this.acceptIdent("scenarios")) cmd.scenarios = true;
+        else if (this.acceptIdent("scenario")) {
+          const t = this.expect("ident", undefined, "scenario name");
+          if (!M.findScenario(sk, t.value)) throw this.error(`Unknown scenario '${t.value}'`, t);
+          cmd.scenario = t.value;
+        }
+        break;
+      case "reset": case "adopt": case "center":
         cmd = { op: tok.value };
         break;
       case "delete":
@@ -512,7 +685,7 @@ export class Parser {
         throw this.error(`Unknown command '${tok.value}'`, tok);
     }
     try {
-     if (!applyCommand(sk, cmd, this.ctx.registry)) this.ctx.commands.push(cmd);
+      if (!applyCommand(sk, cmd, this.ctx.registry)) this.ctx.commands.push(cmd);
     } catch (e) {
       throw this.error(e.message, tok);
     }

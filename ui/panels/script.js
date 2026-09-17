@@ -5,10 +5,12 @@ export function createScriptPanel(ctx) {
   const history = [];
   let hIdx = 0;
 
-  const ta = h("textarea", { class: "pc-script", spellcheck: "false", rows: 18 });
+  // The textarea grows/shrinks with the tool window (see `.pc-fill` /
+  // `.pc-grow`); it owns its own scrollbar instead of the window body.
+  const ta = h("textarea", { class: "pc-script pc-grow", spellcheck: "false", rows: 18 });
   const errBox = h("div", { class: "pc-errors" });
   const applyBtn = h("button", { class: "pc-btn pc-primary", type: "button", onclick: apply }, "Apply script");
-  const revertBtn = h("button", { class: "pc-btn", type: "button", onclick: () => { dirty = false; update(); showErrors([]); } }, "Revert");
+  const revertBtn = h("button", { class: "pc-btn", type: "button", onclick: () => { dirty = false; el.classList.remove("pc-dirty"); update(); showErrors([]); } }, "Revert");
   const consoleIn = h("input", { type: "text", class: "pc-in pc-console", placeholder: "console › point E at (10, 20, 30) · solve · set theta = 45" });
 
   ta.addEventListener("input", () => { dirty = true; el.classList.add("pc-dirty"); });
@@ -34,8 +36,8 @@ export function createScriptPanel(ctx) {
     }
   });
 
-  const body = h("div", {}, ta, h("div", { class: "pc-row" }, applyBtn, revertBtn), errBox, consoleIn);
-  const el = panelShell("Script", body);
+  const body = h("div", { class: "pc-fill" }, ta, h("div", { class: "pc-row" }, applyBtn, revertBtn), errBox, consoleIn);
+  const el = panelShell("Script", body, { fill: true });
 
   function apply() {
     const res = ctx.fromScript(ta.value);

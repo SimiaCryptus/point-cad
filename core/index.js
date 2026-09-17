@@ -13,11 +13,14 @@ if (!registry.solvers.has(gaussNewtonSolver.id)) registry.registerSolver(gaussNe
 
 export const solvers = { gaussNewton: gaussNewtonSolver };
 
-export { registry, Registry } from "./registry.js";
+export { registry, Registry, arityRange, arityText } from "./registry.js";
 export { Emitter } from "./events.js";
 export { euclidean3 } from "./space-euclid3.js";
 export { distanceKind, angleKind, builtinConstraintKinds } from "./measures.js";
 export { gaussNewtonSolver, solveLinear, matrixRank } from "./solver-gn.js";
-export { buildProblem, evaluateConstraints, statusFor, alignSketchFrame } from "./problem.js";
+export {
+   buildProblem, evaluateConstraints, statusFor, alignSketchFrame, resolveScenarios, effectiveConstraints, residualFor,
+   isObjectiveTarget, isInequalityTarget,
+} from "./problem.js";
 export { toJSON, toJSONString, fromJSON, migrate, sniffFormat, CURRENT_VERSION } from "./serialize.js";
 export * from "./model.js";

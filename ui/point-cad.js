@@ -30,6 +30,18 @@ export class PointCad extends HTMLElement {
   static get observedAttributes() {
     return ["src", "readonly", "panels", "open", "theme"];
   }
+   /**
+    * Register an additional tool window (used by extensions). Instances that
+    * are already built pick the new panel up immediately; it opens when named
+    * in their `open` attribute.
+    */
+   static registerPanel(name, factory, title = name) {
+     PANELS[name] = factory;
+     TITLES[name] = title;
+     if (typeof document !== "undefined") {
+       for (const el of document.querySelectorAll("point-cad")) if (el instanceof PointCad && el._built) el._buildPanels();
+     }
+   }
 
   constructor() {
     super();
@@ -37,6 +49,7 @@ export class PointCad extends HTMLElement {
     this.registry = defaultRegistry;
     this._sketch = createSketch();
     this._result = null;
+     this._activeScenario = null;
     this._selection = new Set();
     this._pick = null;
     this._windows = new Map(); // name -> { name, panel, btn, open, x, y, index }
@@ -73,6 +86,7 @@ export class PointCad extends HTMLElement {
   set sketch(value) {
     this._sketch = createSketch(value ?? {});
     this._result = null;
+     this._activeScenario = null;
     this._selection.clear();
     this._commit("set");
   }
@@ -80,6 +94,25 @@ export class PointCad extends HTMLElement {
   get result() {
     return this._result;
   }
+   /**
+    * Id of the scenario whose solution is shown in `solved` positions (null
+    * for sketches without scenarios). Setting it re-applies that scenario's
+    * block of the last solve.
+    */
+   get activeScenario() {
+     return this._activeScenario;
+   }
+   set activeScenario(id) {
+     const next = id ?? null;
+     if (next === this._activeScenario) return;
+     this._activeScenario = next;
+     const sol = this._result?.perScenario?.[next];
+     if (sol) {
+       for (const p of this._sketch.points) if (sol.points[p.id]) p.solved = sol.points[p.id].slice();
+       for (const v of this._sketch.variables) if (!v.locked && v.id in sol.variables) v.solved = sol.variables[v.id];
+     }
+     this._commit("scenario");
+   }
 
   get selection() {
     return [...this._selection];
@@ -138,9 +171,18 @@ export class PointCad extends HTMLElement {
     return this.fromScript(text);
   }
 
-  solve(options = {}) {
+   /**
+    * Solve the sketch. When scenarios are defined they are all solved in one
+    * stacked problem (`options.scenarios` may be `true`, an id or a list to
+    * pick some); the active scenario's block is written to `solved`.
+    */
+   solve(options = {}) {
     const sk = this._sketch;
+     const { scenarios, scenario, ...solverOptions } = options;
+     let scen = scenarios;
+     if (scen === undefined) scen = scenario ?? (sk.scenarios?.length ? true : undefined);
     let result;
+     let problem;
     try {
       const solver = this.registry.solvers.has(sk.solver.method)
         ? this.registry.getSolver(sk.solver.method)
@@ -148,13 +190,14 @@ export class PointCad extends HTMLElement {
       if (!solver) throw new Error("No solver registered");
       const issues = validateSketch(sk, this.registry);
       if (issues.length) throw new Error(issues.map((i) => `${i.path}: ${i.message}`).join("; "));
-      const problem = buildProblem(sk, this.registry);
-      result = solver.solve(problem, { maxIterations: sk.solver.maxIterations, tolerance: sk.solver.tolerance, ...options });
+       problem = buildProblem(sk, this.registry, { scenarios: scen, primary: this._activeScenario });
+       result = solver.solve(problem, { maxIterations: sk.solver.maxIterations, tolerance: sk.solver.tolerance, ...solverOptions });
     } catch (e) {
       this._error("solve", e.message);
       throw e;
     }
     this._result = result;
+     this._activeScenario = problem.scenarios[problem.primaryIndex] ?? null;
     this._dispatch("pointcad:solve", { result, sketch: sk });
     this._commit("solve");
     return result;
@@ -248,7 +291,12 @@ export class PointCad extends HTMLElement {
     if (res.ops.some((op) => op.op !== "view" && op.op !== "def")) this._result = null;
     this._dispatch("pointcad:exec", { source, ops: res.ops });
     this._commit(reason);
-    for (const cmd of res.commands) if (cmd.op === "solve") this.solve();
+     for (const cmd of res.commands) {
+       if (cmd.op !== "solve") continue;
+       try {
+         this.solve(cmd.scenario ? { scenarios: cmd.scenario } : cmd.scenarios ? { scenarios: true } : {});
+       } catch { /* reported through pointcad:error */ }
+     }
   }
 
   async _loadSrc(url) {
@@ -301,6 +349,8 @@ export class PointCad extends HTMLElement {
       get selection() { return self._selection; },
       get readonly() { return self.readonly; },
       get pick() { return self._pick; },
+       get activeScenario() { return self._activeScenario; },
+       setActiveScenario: (id) => { self.activeScenario = id; },
       getSpace: () => self.registry.getSpace(self._sketch.space),
       evaluate: () => evaluateConstraints(self._sketch, self.registry),
       commit: (reason) => self._commit(reason),

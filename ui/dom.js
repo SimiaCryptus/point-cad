@@ -38,8 +38,10 @@ export function bringToFront(el) {
  * Floating tool window: draggable title bar, close button, resizable body.
  * Closing dispatches a bubbling `pc-window-close` event (or calls `onClose`);
  * the end of a drag dispatches `pc-window-move` with `{ x, y }`.
+* With `fill: true` the body becomes a column flexbox so a `.pc-fill` child
+* (and its `.pc-grow` children) can take the window's full height.
  */
-export function panelShell(title, body, { onClose = null } = {}) {
+export function panelShell(title, body, { onClose = null, fill = false } = {}) {
   const win = h("section", { class: "pc-window", role: "dialog", "aria-label": title });
   const closeBtn = h("button", {
     class: "pc-window-close", type: "button", title: `Close ${title}`,
@@ -49,7 +51,7 @@ export function panelShell(title, body, { onClose = null } = {}) {
     },
   }, "✕");
   const head = h("div", { class: "pc-window-head" }, h("span", { class: "pc-panel-title" }, title), closeBtn);
-  win.append(head, h("div", { class: "pc-panel-body" }, body));
+   win.append(head, h("div", { class: `pc-panel-body${fill ? " pc-panel-fill" : ""}` }, body));
 
   win.addEventListener("pointerdown", () => bringToFront(win));
   head.addEventListener("pointerdown", (e) => {
