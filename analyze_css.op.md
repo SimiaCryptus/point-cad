@@ -10,17 +10,16 @@ related:
 **Input.** Every stylesheet matched by `related`. HTML files in the same tree may be
 read for context (which selectors sit on which backgrounds) but are not edited.
 
-
-**Output.** One HTML file, `math.theme_design.html`, written next to the stylesheets. It is
+**Output.** One HTML file, `index.html`, written next to the stylesheets. It is
 the theme-designer *harness* (`demo/theme.html`) with its
 `<script type="application/json" id="theme-doc">` block filled in (§2.11): the sketch
 and every handoff field travel inside that one file, so nothing is cut and pasted.
 Opening it in a browser restores the palette, the preview templates, the migration
 guide and the evidence; the designer plays with anchors and rules, presses *Solve
-themes* and uses the header buttons to regenerate every derived artefact on demand —
-*Save CSS* (`<project>-tokens.css`), *Save guide (.md)* (`<project>-integration.md`,
-the incorporation instructions addressed to a human or an agent), *Save tokens*,
-*Save .pcad*, and *Save harness (.html)* (the file itself with the current edits, so it
+themes* and uses the header buttons to regenerate every derived artefact on demand — *Save CSS*
+(`<project>-tokens.css`), *Save guide (.md)* (`<project>-integration.md`,
+the incorporation instructions addressed to a human or an agent), *Save tokens*, *Save .pcad*, and *Save harness (
+.html)* (the file itself with the current edits, so it
 remains the source of truth).
 
 The harness document must contain
@@ -35,24 +34,22 @@ The harness document must contain
 5. a description of what the application will **emit when the sketch is solved**,
 6. a **migration guide** for rewriting the stylesheets against the new variables, and
 7. the **evidence** (inventory, token map, relations, expected output) that justifies
-    every rule — as fields of the same document, not as a separate markdown transcript.
+   every rule — as fields of the same document, not as a separate markdown transcript.
 
 The sketch must be precise enough to parse and solve without hand edits, and readable
-
-
 
 enough that a designer understands *why* each rule exists. §3 defines every field; the
 short form of where each one surfaces:
 
-| document field (§3)                                                              | in the UI                                   | in the generated guide              |
-|----------------------------------------------------------------------------------|---------------------------------------------|-------------------------------------|
-| `pcad` (top level, beside `doc`)                                                 | **Script** window                           | §11, and *Save .pcad*               |
-| `project`, `prefix`, `format`, `scope`, `switchMode`, `defaultTheme`, `fallback` | **Handoff › Project & emitter**             | title, file names, *At a glance*, §3 |
-| `summary`                                                                        | **Handoff › Migration guide › Summary**     | §1                                  |
-| `replacements`, `plumbing`, `alpha`, `skip`, `order`                             | **Handoff › Migration guide**               | §5 – §9                             |
-| `findings`                                                                       | **Handoff › Migration guide › Findings**    | §10                                 |
-| `preview.css`, `preview.html`                                                    | **Preview** window, CSS / HTML tabs         | §12                                 |
-| `inventory`, `tokenMap`, `relations`, `expected`                                 | **Handoff › Evidence (working notes)**      | Appendix A – D                      |
+| document field (§3)                                                              | in the UI                                | in the generated guide               |
+|----------------------------------------------------------------------------------|------------------------------------------|--------------------------------------|
+| `pcad` (top level, beside `doc`)                                                 | **Script** window                        | §11, and *Save .pcad*                |
+| `project`, `prefix`, `format`, `scope`, `switchMode`, `defaultTheme`, `fallback` | **Handoff › Project & emitter**          | title, file names, *At a glance*, §3 |
+| `summary`                                                                        | **Handoff › Migration guide › Summary**  | §1                                   |
+| `replacements`, `plumbing`, `alpha`, `skip`, `order`                             | **Handoff › Migration guide**            | §5 – §9                              |
+| `findings`                                                                       | **Handoff › Migration guide › Findings** | §10                                  |
+| `preview.css`, `preview.html`                                                    | **Preview** window, CSS / HTML tabs      | §12                                  |
+| `inventory`, `tokenMap`, `relations`, `expected`                                 | **Handoff › Evidence (working notes)**   | Appendix A – D                       |
 
 A markdown document is no longer part of the deliverable: *Save guide (.md)* generates
 `<project>-integration.md` from these fields whenever someone needs it.
@@ -86,8 +83,8 @@ This operation does **not** modify any stylesheet. It produces the harness only.
 
 ## 2. Procedure
 
-Work through the steps in order; each fills one or more fields of the harness document
-(§3). Draft the fields as you go — they are markdown — and assemble the file in §2.11.
+Work through the steps in order; each fills one or more fields of the harness document (§3). Draft the fields as you
+go — they are markdown — and assemble the file in §2.11.
 
 ### 2.1 Inventory the colours
 
@@ -259,12 +256,11 @@ them and the guide prints them in §12). Requirements:
 
 Derive it from the inventory: which literal becomes which `var()`, where, and what to
 delete. Detailed requirements in §3.8.
+
 - *Save CSS* — `<project>-tokens.css`, the stylesheet the app loads first.
 - *Save tokens* / *Save .pcad* when the host wants them.
 
 ---
-
-
 
 ## 3. The harness document (`theme-doc`)
 
@@ -298,10 +294,6 @@ For each rule in the sketch: the rule, the tokens involved, the measured evidenc
 theme (e.g. `dL canvas→surface1 = −0.041, surface1→surface2 = −0.039`), and whether it
 currently *holds*, is a *floor the CSS fails*, or is a *design decision* (orientation
 point, shared variable).
-
-
-
-
 
 ### 3.5 The sketch (`pcad`)
 
@@ -361,7 +353,7 @@ to write and why.
 
 ## 4. PCS reference used by this operation
 
-The subset of the language the theme designer accepts (see `theme-designer/idea.md`
+The subset of the language the theme designer accepts (see `theme-designer/README.md`
 §5–§7 for the rationale).
 
 ```
@@ -462,14 +454,14 @@ the sketch** before accepting it:
   explained in §3.9.
 
 *Export tokens* writes the same data as W3C Design Tokens JSON, one group per theme; *Export .pcad* writes the sketch
-back with solved seeds if *Adopt* was used.
-*Save guide (.md)* writes `<project>-integration.md`: the token table (token → custom
+back with solved seeds if *Adopt* was used. *Save guide (.md)* writes `<project>-integration.md`: the token table
+(token → custom
 property → value per theme), the CSS above, numbered adoption steps addressed to a human
 or an agent, the six migration-guide fields verbatim, the sketch, the demonstration, the
 solver report and the evidence fields as an appendix. *Save harness (.html)* writes a standalone page whose
 `<script type="application/json" id="theme-doc">` block carries the sketch and every
-field — the same format this operation writes in §2.11 — so the palette can be re-opened
-(*Open…* or drag-and-drop), re-coloured and re-exported later.
+field — the same format this operation writes in §2.11 — so the palette can be re-opened (*Open…* or drag-and-drop),
+re-coloured and re-exported later.
 
 ---
 
@@ -659,21 +651,21 @@ a {
   `gamut srgb`; report it and use its gamut-mapped value.
 - **Everything must parse.** Constraint names, arities and target forms are exactly
 - **Raw templates.** `preview.css` and `preview.html` are CSS and body markup, not fenced
-   markdown; a fence in either shows up verbatim in the preview.
-- **Valid JSON.** One bad escape in the `theme-doc` block and the harness opens empty
-  (the log then shows no `loaded embedded sketch` line). Escape `"`, `\` and newlines in
-   `pcad`, and `</` as `<\/`.
-  those in §4; `math.theme_design.html` must open with no errors in the log.
+  markdown; a fence in either shows up verbatim in the preview.
+- **Valid JSON.** One bad escape in the `theme-doc` block and the harness opens empty (the log then shows no
+  `loaded embedded sketch` line). Escape `"`, `\` and newlines in
+  `pcad`, and `</` as `<\/`.
+  those in §4; `index.html` must open with no errors in the log.
 
 ---
 
 ## 8. Acceptance checklist
 
 - [ ] The sketch parses and solves (`converged=true`, `0 unmet` per theme, or unmet
-- [ ] `math.theme_design.html` opens in a browser: the `theme-doc` block is valid JSON, the
+- [ ] `index.html` opens in a browser: the `theme-doc` block is valid JSON, the
   log says `loaded embedded sketch`, and no `src=` fetch error appears.
 - [ ] Every colour literal in the matched CSS appears in `inventory`, and every cluster
-   is either a token in `tokenMap` or explained in `findings`.
+  is either a token in `tokenMap` or explained in `findings`.
   constraints explained).
 - [ ] Every exported token is seeded with an observed value (light) and, for dark, either
   observed or seeded on the correct side of the canvas.
@@ -684,19 +676,22 @@ a {
 - [ ] The migration table covers every occurrence in the inventory, including deletions
   of redundant per-theme overrides.
 - [ ] Proposed (not found) themes and all accessibility failures are listed as findings.
+
 ### 2.11 Write the harness
-Copy `demo/theme.html` to `math.theme_design.html` and fill in its `theme-doc` block — do not
+
+Copy `demo/theme.html` to `index.html` and fill in its `theme-doc` block — do not
 leave the file to be assembled by hand in the browser:
+
 1. Remove the `src="./palette.pcad"` attribute from `<point-cad>`. An embedded sketch
-    wins over `src=` anyway, but the attribute would still fetch (and log an error) when
-    the file is opened from another directory.
-2. Point the module import at the library relative to where `math.theme_design.html` lives:
-    `import { bootHarness } from "<path>/extensions/theme/ui/harness.js"`.
+   wins over `src=` anyway, but the attribute would still fetch (and log an error) when
+   the file is opened from another directory.
+2. Point the module import at the library relative to where `index.html` lives:
+   `import { bootHarness } from "https://math.cognotik.com/experiments/point-cad/extensions/theme/ui/harness.js"`.
 3. Fill the JSON block. Every key of `doc` is optional and falls back to the harness
-    defaults; `pcad` is the complete sketch of §2.8 as **one JSON string** (`\n` between
-    lines, `"` and `\` escaped). Prose fields are markdown; `preview.html` /
-    `preview.css` are raw markup and CSS. Escape any `</` inside the block as `<\/` (the
-    harness itself writes `\u003c`) so the browser does not close the script early.
+   defaults; `pcad` is the complete sketch of §2.8 as **one JSON string** (`\n` between
+   lines, `"` and `\` escaped). Prose fields are markdown; `preview.html` /
+   `preview.css` are raw markup and CSS. Escape any `</` inside the block as `<\/` (the
+   harness itself writes `\u003c`) so the browser does not close the script early.
     ```html
     <script type="application/json" id="theme-doc">
     {
@@ -717,14 +712,18 @@ leave the file to be assembled by hand in the browser:
     </script>
     ```
 4. Verify in a browser: open the file, check the log for `loaded embedded sketch` with
-    no parse errors, press *Solve themes* and read `0 unmet` per theme (or explain the
-    unmet constraints in `findings`). If the session changed anything worth keeping,
-    *Save harness (.html)* writes the same file format back.
-From that file the designer produces every derived artefact without any notes document:
+   no parse errors, press *Solve themes* and read `0 unmet` per theme (or explain the
+   unmet constraints in `findings`). If the session changed anything worth keeping, *Save harness (.html)* writes the
+   same file format back.
+   From that file the designer produces every derived artefact without any notes document:
+
 - *Save harness (.html)* — the deliverable itself: sketch + templates + guide + evidence.
 - *Save guide (.md)* — `<project>-integration.md`, generated from the fields: the token
-   table, the CSS, numbered adoption steps for a human or an agent, the six migration
-   fields verbatim, the sketch, the demonstration, the solver report and the evidence
-   appendix. Nobody writes this file by hand.
+  table, the CSS, numbered adoption steps for a human or an agent, the six migration
+  fields verbatim, the sketch, the demonstration, the solver report and the evidence
+  appendix. Nobody writes this file by hand.
 - *Open…* (or dropping a file on the viewport) re-loads a saved harness, a `.pcad` or a
-   sketch `.json` into the same page.
+  sketch `.json` into the same page.
+
+
+

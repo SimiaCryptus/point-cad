@@ -4,7 +4,7 @@
   "section": "featured",
   "icon": "TC",
   "title": "Theme CAD",
-  "href": "../demo/math.theme_design.html",
-  "readme": "idea.md",
+  "href": "index.html",
+  "readme": "README.md",
   "pitch": "A theme designer for PointCAD, allowing you to create and customize themes for your CAD projects."
 }
