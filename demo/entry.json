@@ -1,11 +1,11 @@
 {
-  "id": "point-cad",
-  "title": "Point CAD",
-  "category": "lab",
-  "href": "index.html",
-  "readme": "README.md",
-  "order": 17,
-  "section": "featured",
-  "icon": "PC",
-  "pitch": "A point-based CAD system for designing complex geometries."
+    "id": "point-cad",
+    "title": "Point CAD",
+    "pitch": "A point-based CAD system for designing complex geometries.",
+    "category": "lab",
+    "href": "index.html",
+    "readme": "README.md",
+    "order": 17,
+    "section": "featured",
+    "icon": "PC"
 }
