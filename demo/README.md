@@ -1,11 +1,11 @@
 # Point-CAD
 
-*A parametric 3D point-structure sketcher*
+_A parametric 3D point-structure sketcher_
 
 ## What is this?
 
 Point-CAD is a small tool for describing shapes in three-dimensional space
-not by drawing them directly, but by stating the *relationships* you want
+not by drawing them directly, but by stating the _relationships_ you want
 between a handful of labeled points — this distance equals 100mm, this angle
 is 90 degrees, this length should be as short as possible — and letting a
 solver figure out where the points actually have to go to satisfy all of
@@ -19,7 +19,7 @@ extended into full 3D space rather than confined to a flat sketch plane.
 ## The basic idea
 
 Most drawing tools ask you to place things exactly where you want them. A
-*parametric* tool asks you instead to describe **constraints** — facts that
+_parametric_ tool asks you instead to describe **constraints** — facts that
 must remain true — and it works out a consistent geometry that honors them.
 If you later change one number (say, a beam length), everything connected to
 it recomputes automatically. This is the same idea behind spreadsheets: you
@@ -111,12 +111,12 @@ without any special software.
 
 ## A little bit of background
 
-The tool grew out of an interest in keeping the *geometric core* of a CAD-like
+The tool grew out of an interest in keeping the _geometric core_ of a CAD-like
 sketcher as small as possible — just enough primitives (points, distance,
 angle, a solver) to be genuinely useful, while pushing every fancier idea
 (areas, curves, volumes, non-Euclidean spaces) out to the edges as optional
 extensions rather than built-in assumptions. That constraint, in turn, forced
 some interesting design questions: how do you express "parallel" using only
-distance and angle in 3D? How do you know when a sketch has *just enough*
+distance and angle in 3D? How do you know when a sketch has _just enough_
 constraints, versus too many or too few? Working through those questions is
 as much the point of the project as the resulting sketching tool.

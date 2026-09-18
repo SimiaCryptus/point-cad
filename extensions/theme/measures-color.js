@@ -6,7 +6,7 @@ const RAD2DEG = 180 / Math.PI;
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 export const polar = (space, c) => {
-  if (typeof space.toPolar === "function") return space.toPolar(c);
+  if (typeof space.toPolar === 'function') return space.toPolar(c);
   let h = Math.atan2(c[2], c[1]) * RAD2DEG;
   if (h < 0) h += 360;
   return [c[0], Math.hypot(c[1], c[2]), h];
@@ -24,16 +24,20 @@ export function hueArc(from, to) {
 
 export function axisValue(space, axis, c) {
   switch (axis) {
-    case "L": return lightness(space, c);
-    case "C": return chroma(space, c);
-    case "H": return hue(space, c);
-    default: throw new Error(`Unknown colour axis '${axis}'`);
+    case 'L':
+      return lightness(space, c);
+    case 'C':
+      return chroma(space, c);
+    case 'H':
+      return hue(space, c);
+    default:
+      throw new Error(`Unknown colour axis '${axis}'`);
   }
 }
 
 /** Axis difference B − A (hue as the shortest arc). */
 export function axisDelta(space, axis, a, b) {
-  if (axis === "H") return hueArc(hue(space, a), hue(space, b));
+  if (axis === 'H') return hueArc(hue(space, a), hue(space, b));
   return axisValue(space, axis, b) - axisValue(space, axis, a);
 }
 
@@ -52,14 +56,25 @@ export function wcagContrast(space, a, b) {
 
 // APCA-W3 0.1.9 (0.98G-4g) constants.
 const APCA = {
-  normBG: 0.56, normTXT: 0.57, revTXT: 0.62, revBG: 0.65,
-  blkThrs: 0.022, blkClmp: 1.414, scale: 1.14, loOffset: 0.027, loClip: 0.1, deltaYmin: 0.0005,
+  normBG: 0.56,
+  normTXT: 0.57,
+  revTXT: 0.62,
+  revBG: 0.65,
+  blkThrs: 0.022,
+  blkClmp: 1.414,
+  scale: 1.14,
+  loOffset: 0.027,
+  loClip: 0.1,
+  deltaYmin: 0.0005,
 };
 
 function apcaY(space, c) {
-  const rgb = space.toLinearSRGB(c).map((v) => clamp01(typeof space.toSRGB === "function" ? 0 : v));
+  const rgb = space.toLinearSRGB(c).map((v) => clamp01(typeof space.toSRGB === 'function' ? 0 : v));
   // APCA defines Y on gamma-encoded sRGB with a plain 2.4 exponent.
-  const enc = typeof space.toSRGB === "function" ? space.toSRGB(c).map(clamp01) : rgb.map((v) => v ** (1 / 2.4));
+  const enc =
+    typeof space.toSRGB === 'function'
+      ? space.toSRGB(c).map(clamp01)
+      : rgb.map((v) => v ** (1 / 2.4));
   return 0.2126729 * enc[0] ** 2.4 + 0.7151522 * enc[1] ** 2.4 + 0.072175 * enc[2] ** 2.4;
 }
 

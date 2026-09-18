@@ -8,7 +8,11 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const clamp01 = (v) => clamp(v, 0, 1);
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const cross = (a, b) => [
+  a[1] * b[2] - a[2] * b[1],
+  a[2] * b[0] - a[0] * b[2],
+  a[0] * b[1] - a[1] * b[0],
+];
 const norm = (a) => Math.sqrt(dot(a, a));
 const round = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
 const pct = (v, d = 3) => `${round(v * 100, d)}%`;
@@ -22,23 +26,23 @@ export function linearToOklab([r, g, b]) {
   const m_ = Math.cbrt(m);
   const s_ = Math.cbrt(s);
   return [
-    0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_,
-    1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_,
-    0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_,
+    0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_,
+    1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_,
+    0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_,
   ];
 }
 
 export function oklabToLinear([L, a, b]) {
   const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
   const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
-  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+  const s_ = L - 0.0894841775 * a - 1.291485548 * b;
   const l = l_ * l_ * l_;
   const m = m_ * m_ * m_;
   const s = s_ * s_ * s_;
   return [
     4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
     -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
   ];
 }
 
@@ -71,14 +75,28 @@ export function hslToSrgb(h, s, l) {
 }
 
 export function hexToSrgb(hex) {
-  let h = String(hex).replace(/^#/, "");
-  if (h.length === 3 || h.length === 4) h = h.split("").map((ch) => ch + ch).join("");
-  if (!(h.length === 6 || h.length === 8) || !/^[0-9a-fA-F]+$/.test(h)) throw new Error(`Invalid hex colour '${hex}'`);
+  let h = String(hex).replace(/^#/, '');
+  if (h.length === 3 || h.length === 4)
+    h = h
+      .split('')
+      .map((ch) => ch + ch)
+      .join('');
+  if (!(h.length === 6 || h.length === 8) || !/^[0-9a-fA-F]+$/.test(h))
+    throw new Error(`Invalid hex colour '${hex}'`);
   return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
 }
 
 export function srgbToHex(rgb) {
-  return "#" + rgb.map((v) => Math.round(clamp01(v) * 255).toString(16).padStart(2, "0")).join("");
+  return (
+    '#' +
+    rgb
+      .map((v) =>
+        Math.round(clamp01(v) * 255)
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('')
+  );
 }
 
 export function toPolar([L, a, b]) {
@@ -103,19 +121,19 @@ export function fromSrgb(rgb) {
 }
 
 function needComponents(name, args, count) {
-  const vals = args.filter((a) => a && typeof a.value === "number");
+  const vals = args.filter((a) => a && typeof a.value === 'number');
   if (vals.length < count) throw new Error(`${name}() needs ${count} components`);
   return vals;
 }
 
 export const oklab = {
-  id: "oklab",
-  name: "OKLab (perceptual colour)",
+  id: 'oklab',
+  name: 'OKLab (perceptual colour)',
   dim: 3,
-  axes: ["L", "a", "b"],
-  polarAxes: ["L", "C", "h"],
-  literalFunctions: ["oklch", "oklab", "rgb", "rgba", "hsl", "hsla"],
-  preferredLiteral: "oklch",
+  axes: ['L', 'a', 'b'],
+  polarAxes: ['L', 'C', 'h'],
+  literalFunctions: ['oklch', 'oklab', 'rgb', 'rgba', 'hsl', 'hsla'],
+  preferredLiteral: 'oklch',
 
   // ---- core Space interface ------------------------------------------
   /** ΔE_ok: OKLab is Euclidean in its Cartesian form. */
@@ -163,24 +181,26 @@ export const oklab = {
   /** Parse `hex` / `rgb` / `hsl` / `oklch` / `oklab` literals into [L, a, b]. */
   parseLiteral(name, args) {
     switch (name) {
-      case "hex":
+      case 'hex':
         return fromSrgb(hexToSrgb(args[0]));
-      case "rgb": case "rgba": {
+      case 'rgb':
+      case 'rgba': {
         const v = needComponents(name, args, 3);
         return fromSrgb(v.slice(0, 3).map((a) => (a.percent ? a.value / 100 : a.value / 255)));
       }
-      case "hsl": case "hsla": {
+      case 'hsl':
+      case 'hsla': {
         const v = needComponents(name, args, 3);
         const p = (a) => (a.percent ? a.value / 100 : a.value);
         return fromSrgb(hslToSrgb(v[0].value, p(v[1]), p(v[2])));
       }
-      case "oklch": {
+      case 'oklch': {
         const v = needComponents(name, args, 3);
         const L = v[0].percent ? v[0].value / 100 : v[0].value;
         const C = v[1].percent ? (v[1].value * 0.4) / 100 : v[1].value;
         return fromPolar([L, C, v[2].value]);
       }
-      case "oklab": {
+      case 'oklab': {
         const v = needComponents(name, args, 3);
         const L = v[0].percent ? v[0].value / 100 : v[0].value;
         const ab = (a) => (a.percent ? (a.value * 0.4) / 100 : a.value);
@@ -192,18 +212,18 @@ export const oklab = {
   },
 
   /** CSS text for a colour: `oklch` (default, exact), `oklab`, `rgb` or `hex` (the latter two gamut-clipped). */
-  formatLiteral(c, format = "oklch") {
+  formatLiteral(c, format = 'oklch') {
     switch (format) {
-      case "hex":
+      case 'hex':
         return srgbToHex(toSrgb(c));
-      case "rgb": {
+      case 'rgb': {
         const [r, g, b] = toSrgb(c).map((v) => Math.round(clamp01(v) * 255));
         return `rgb(${r} ${g} ${b})`;
       }
-      case "oklab":
+      case 'oklab':
         return `oklab(${pct(c[0])} ${round(c[1], 5)} ${round(c[2], 5)})`;
-      case "tuple":
-        return `(${c.map((v) => round(v, 6)).join(", ")})`;
+      case 'tuple':
+        return `(${c.map((v) => round(v, 6)).join(', ')})`;
       default: {
         const [L, C, h] = toPolar(c);
         return `oklch(${pct(L)} ${round(C, 5)} ${round(h, 2)})`;

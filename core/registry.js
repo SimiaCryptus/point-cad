@@ -1,4 +1,4 @@
-import { Emitter } from "./events.js";
+import { Emitter } from './events.js';
 
 function assert(cond, msg) {
   if (!cond) throw new Error(`registry: ${msg}`);
@@ -12,14 +12,18 @@ function assert(cond, msg) {
 export function arityRange(kind) {
   const a = kind?.arity?.points;
   if (Number.isInteger(a) && a >= 0) return { min: a, max: a };
-  if (typeof a === "string") {
+  if (typeof a === 'string') {
     const m = /^(\d+)\+$/.exec(a.trim());
     return m ? { min: Number(m[1]), max: Infinity } : null;
   }
-  if (a && typeof a === "object") {
+  if (a && typeof a === 'object') {
     const min = a.min ?? 0;
     const max = a.max ?? Infinity;
-    const ok = Number.isInteger(min) && min >= 0 && (max === Infinity || Number.isInteger(max)) && max >= min;
+    const ok =
+      Number.isInteger(min) &&
+      min >= 0 &&
+      (max === Infinity || Number.isInteger(max)) &&
+      max >= min;
     return ok ? { min, max } : null;
   }
   return null;
@@ -28,7 +32,7 @@ export function arityRange(kind) {
 /** Human-readable arity: "2", "2–4" or "2 or more". */
 export function arityText(kind) {
   const r = arityRange(kind);
-  if (!r) return "?";
+  if (!r) return '?';
   if (r.min === r.max) return String(r.min);
   return Number.isFinite(r.max) ? `${r.min}–${r.max}` : `${r.min} or more`;
 }
@@ -52,13 +56,23 @@ export class Registry {
 
   // ---- spaces ---------------------------------------------------------
   registerSpace(space) {
-    assert(space && typeof space.id === "string", "space needs a string id");
-    assert(Number.isInteger(space.dim) && space.dim > 0, `space '${space.id}' needs an integer dim`);
-    for (const fn of ["distance", "angle", "interpolate", "normalize", "toDisplay", "fromDisplay"]) {
-      assert(typeof space[fn] === "function", `space '${space.id}' is missing ${fn}()`);
+    assert(space && typeof space.id === 'string', 'space needs a string id');
+    assert(
+      Number.isInteger(space.dim) && space.dim > 0,
+      `space '${space.id}' needs an integer dim`
+    );
+    for (const fn of [
+      'distance',
+      'angle',
+      'interpolate',
+      'normalize',
+      'toDisplay',
+      'fromDisplay',
+    ]) {
+      assert(typeof space[fn] === 'function', `space '${space.id}' is missing ${fn}()`);
     }
     this.spaces.set(space.id, space);
-    this.events.emit("space", space);
+    this.events.emit('space', space);
     return space;
   }
 
@@ -74,10 +88,10 @@ export class Registry {
 
   // ---- entity kinds ---------------------------------------------------
   registerEntityKind(kind) {
-    assert(kind && typeof kind.id === "string", "entity kind needs a string id");
-    assert(typeof kind.unknowns === "function", `entity kind '${kind.id}' needs unknowns()`);
+    assert(kind && typeof kind.id === 'string', 'entity kind needs a string id');
+    assert(typeof kind.unknowns === 'function', `entity kind '${kind.id}' needs unknowns()`);
     this.entityKinds.set(kind.id, kind);
-    this.events.emit("entityKind", kind);
+    this.events.emit('entityKind', kind);
     return kind;
   }
 
@@ -96,24 +110,30 @@ export class Registry {
    * (space capabilities) and `spaces` (explicit allow list).
    */
   registerConstraintKind(kind) {
-    assert(kind && typeof kind.id === "string", "constraint kind needs a string id");
+    assert(kind && typeof kind.id === 'string', 'constraint kind needs a string id');
     const range = arityRange(kind);
     assert(range, `constraint kind '${kind.id}' needs arity.points (n, "n+" or { min, max })`);
-    assert(typeof kind.measure === "function", `constraint kind '${kind.id}' needs measure()`);
+    assert(typeof kind.measure === 'function', `constraint kind '${kind.id}' needs measure()`);
     const params = Array.isArray(kind.params) ? kind.params : [];
-    for (const p of params) assert(p && typeof p.name === "string", `constraint kind '${kind.id}' has a parameter without a name`);
-    const paramText = params.map((p) => `<${p.name}>`).join(" ");
-    const placeholders = Array.from({ length: range.min }, (_, i) => `<P${i + 1}>`).join(" ") + (range.max > range.min ? " …" : "");
+    for (const p of params)
+      assert(
+        p && typeof p.name === 'string',
+        `constraint kind '${kind.id}' has a parameter without a name`
+      );
+    const paramText = params.map((p) => `<${p.name}>`).join(' ');
+    const placeholders =
+      Array.from({ length: range.min }, (_, i) => `<P${i + 1}>`).join(' ') +
+      (range.max > range.min ? ' …' : '');
     const full = {
-      spaces: "*",
+      spaces: '*',
       requires: [],
-      unit: "length",
+      unit: 'length',
       params,
-      syntax: [kind.id, paramText, placeholders].filter(Boolean).join(" "),
+      syntax: [kind.id, paramText, placeholders].filter(Boolean).join(' '),
       ...kind,
     };
     this.constraintKinds.set(full.id, full);
-    this.events.emit("constraintKind", full);
+    this.events.emit('constraintKind', full);
     return full;
   }
 
@@ -129,7 +149,8 @@ export class Registry {
 
   /** True when the kind's allow list admits the space and the space has every required capability. */
   kindSupportsSpace(kind, spaceId) {
-    const listed = kind.spaces === "*" || (Array.isArray(kind.spaces) && kind.spaces.includes(spaceId));
+    const listed =
+      kind.spaces === '*' || (Array.isArray(kind.spaces) && kind.spaces.includes(spaceId));
     if (!listed) return false;
     const req = Array.isArray(kind.requires) ? kind.requires : [];
     if (!req.length) return true;
@@ -149,10 +170,10 @@ export class Registry {
 
   // ---- solvers --------------------------------------------------------
   registerSolver(solver) {
-    assert(solver && typeof solver.id === "string", "solver needs a string id");
-    assert(typeof solver.solve === "function", `solver '${solver.id}' needs solve()`);
+    assert(solver && typeof solver.id === 'string', 'solver needs a string id');
+    assert(typeof solver.solve === 'function', `solver '${solver.id}' needs solve()`);
     this.solvers.set(solver.id, solver);
-    this.events.emit("solver", solver);
+    this.events.emit('solver', solver);
     return solver;
   }
 
@@ -171,10 +192,10 @@ export class Registry {
    * keyword the emitter uses for scenario blocks.
    */
   registerStatement(stmt) {
-    assert(stmt && typeof stmt.id === "string", "statement needs a string id");
-    assert(typeof stmt.parse === "function", `statement '${stmt.id}' needs parse()`);
+    assert(stmt && typeof stmt.id === 'string', 'statement needs a string id');
+    assert(typeof stmt.parse === 'function', `statement '${stmt.id}' needs parse()`);
     this.statements.set(stmt.id, stmt);
-    this.events.emit("statement", stmt);
+    this.events.emit('statement', stmt);
     return stmt;
   }
 
@@ -191,10 +212,10 @@ export class Registry {
   // ---- point roles ----------------------------------------------------
   /** A role is a named preset for a point: `{ id, fixed, export, description }`. */
   registerPointRole(role) {
-    assert(role && typeof role.id === "string", "point role needs a string id");
+    assert(role && typeof role.id === 'string', 'point role needs a string id');
     const full = { fixed: false, export: true, ...role };
     this.pointRoles.set(full.id, full);
-    this.events.emit("pointRole", full);
+    this.events.emit('pointRole', full);
     return full;
   }
 
@@ -205,7 +226,7 @@ export class Registry {
    * inside the gamut"). Returns an unregister function.
    */
   registerImplicitConstraints(fn) {
-    assert(typeof fn === "function", "implicit constraint provider must be a function");
+    assert(typeof fn === 'function', 'implicit constraint provider must be a function');
     this.implicitConstraints.push(fn);
     return () => {
       this.implicitConstraints = this.implicitConstraints.filter((f) => f !== fn);

@@ -1,6 +1,6 @@
 // Default solver: damped Gauss-Newton / Levenberg-Marquardt with numerical
 // Jacobians. Dense linear algebra, no dependencies.
-import { statusFor } from "./problem.js";
+import { statusFor } from './problem.js';
 
 const sq = (v) => {
   let s = 0;
@@ -47,7 +47,8 @@ export function solveLinear(A, b, n) {
   const v = Float64Array.from(b);
   for (let col = 0; col < n; col++) {
     let piv = col;
-    for (let r = col + 1; r < n; r++) if (Math.abs(M[r * n + col]) > Math.abs(M[piv * n + col])) piv = r;
+    for (let r = col + 1; r < n; r++)
+      if (Math.abs(M[r * n + col]) > Math.abs(M[piv * n + col])) piv = r;
     const pv = M[piv * n + col];
     if (Math.abs(pv) < 1e-14) return null;
     if (piv !== col) {
@@ -88,7 +89,8 @@ export function matrixRank(J, m, n) {
   let row = 0;
   for (let col = 0; col < n && row < m; col++) {
     let piv = row;
-    for (let r = row + 1; r < m; r++) if (Math.abs(M[r * n + col]) > Math.abs(M[piv * n + col])) piv = r;
+    for (let r = row + 1; r < m; r++)
+      if (Math.abs(M[r * n + col]) > Math.abs(M[piv * n + col])) piv = r;
     if (Math.abs(M[piv * n + col]) <= tol) continue;
     if (piv !== row) {
       for (let k = 0; k < n; k++) {
@@ -117,7 +119,7 @@ function rigidBodyDof(problem) {
   if (problem.pointOffset.size === 0) return 0;
   const f = problem.fixedPointCount;
   const S = problem.scenarioCount ?? 1;
-  if (typeof problem.space?.rigidDof === "function") return S * problem.space.rigidDof(f, dim);
+  if (typeof problem.space?.rigidDof === 'function') return S * problem.space.rigidDof(f, dim);
   let per;
   if (dim === 3) per = f === 0 ? 6 : f === 1 ? 3 : f === 2 ? 1 : 0;
   else {
@@ -129,8 +131,8 @@ function rigidBodyDof(problem) {
 }
 
 export const gaussNewtonSolver = {
-  id: "gauss-newton",
-  name: "Damped Gauss-Newton (LM)",
+  id: 'gauss-newton',
+  name: 'Damped Gauss-Newton (LM)',
 
   solve(problem, options = {}) {
     const maxIterations = options.maxIterations ?? 200;
@@ -160,7 +162,11 @@ export const gaussNewtonSolver = {
       for (let attempt = 0; attempt < 12 && !accepted; attempt++) {
         const A = Float64Array.from(JtJ);
         for (let i = 0; i < n; i++) A[i * n + i] += lambda * Math.max(JtJ[i * n + i], 1e-9);
-        const delta = solveLinear(A, Jtr.map((v) => -v), n);
+        const delta = solveLinear(
+          A,
+          Jtr.map((v) => -v),
+          n
+        );
         if (!delta) {
           lambda *= 10;
           continue;
@@ -178,7 +184,8 @@ export const gaussNewtonSolver = {
           cost = cn;
           lambda = Math.max(lambda / 3, 1e-12);
           accepted = true;
-          if (stepNorm < 1e-10 * (1 + Math.sqrt(sq(x))) || decrease < 1e-16 * (1 + cost)) stalled = true;
+          if (stepNorm < 1e-10 * (1 + Math.sqrt(sq(x))) || decrease < 1e-16 * (1 + cost))
+            stalled = true;
         } else {
           lambda *= 4;
         }
@@ -189,7 +196,7 @@ export const gaussNewtonSolver = {
     // Re-centre and align it so the free frame is deterministic and is not
     // mistaken for under-constraint. Residuals are invariant, but recompute
     // them anyway so the report matches the reported positions exactly.
-    const gaugeFixed = typeof problem.alignFrame === "function" && problem.alignFrame(x);
+    const gaugeFixed = typeof problem.alignFrame === 'function' && problem.alignFrame(x);
     if (gaugeFixed) {
       r = problem.residuals(x);
       cost = sq(r);
@@ -233,12 +240,21 @@ export const gaussNewtonSolver = {
         residual,
         weighted,
         violated: t.isInequality ? residual > tolerance : undefined,
-        status: t.isEquality ? statusFor(residual) : "objective",
+        status: t.isEquality ? statusFor(residual) : 'objective',
       };
     });
-    const perScenario = problem.scenarios[0] != null
-      ? Object.fromEntries(problem.scenarios.map((id, si) => [id, { ...problem.solutionFor(x, si), residuals: perConstraint.filter((pc) => pc.scenario === id) }]))
-      : null;
+    const perScenario =
+      problem.scenarios[0] != null
+        ? Object.fromEntries(
+            problem.scenarios.map((id, si) => [
+              id,
+              {
+                ...problem.solutionFor(x, si),
+                residuals: perConstraint.filter((pc) => pc.scenario === id),
+              },
+            ])
+          )
+        : null;
 
     return {
       solver: this.id,

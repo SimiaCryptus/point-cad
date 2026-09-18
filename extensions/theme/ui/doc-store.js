@@ -30,44 +30,44 @@ a { color: var(--color-link, #36c); }
 
 /** Every field the harness carries. Prose fields are markdown. */
 export const DEFAULT_DOC = {
-  project: "My app",
+  project: 'My app',
   // emitter options (see emit-css.js)
-  prefix: "color-",
-  format: "oklch",
-  scope: ":root",
-  switchMode: "media,attribute",
-  defaultTheme: "",
+  prefix: 'color-',
+  format: 'oklch',
+  scope: ':root',
+  switchMode: 'media,attribute',
+  defaultTheme: '',
   fallback: false,
   // migration guide
-  summary: "",
+  summary: '',
   replacements:
-    "| literal | where | property | token | replacement |\n" +
-    "|---|---|---|---|---|\n",
+    '| literal | where | property | token | replacement |\n' + '|---|---|---|---|---|\n',
   plumbing:
-    "1. Load the generated stylesheet **first**, before any other CSS.\n" +
-    "2. Keep the emitted `:root` block as the default theme.\n" +
+    '1. Load the generated stylesheet **first**, before any other CSS.\n' +
+    '2. Keep the emitted `:root` block as the default theme.\n' +
     '3. Opt-in switching is `[data-theme="…"]` on `<html>`.\n' +
-    "4. Add `color-scheme: light dark` to `:root` so form controls and scrollbars follow.",
+    '4. Add `color-scheme: light dark` to `:root` so form controls and scrollbars follow.',
   alpha:
-    "Translucent uses of a token become `color-mix(in oklab, var(--color-X) 40%, transparent)`.\n" +
-    "One-off shades can use relative colour syntax: `oklch(from var(--color-X) calc(l - 0.06) c h)`.\n" +
-    "Shadows and scrims stay literal.",
+    'Translucent uses of a token become `color-mix(in oklab, var(--color-X) 40%, transparent)`.\n' +
+    'One-off shades can use relative colour syntax: `oklch(from var(--color-X) calc(l - 0.06) c h)`.\n' +
+    'Shadows and scrims stay literal.',
   skip:
-    "`currentColor`, `transparent`, pure black shadows/scrims, white hairlines (use `color-mix` from the text token), " +
-    "and any third-party component you do not own.",
+    '`currentColor`, `transparent`, pure black shadows/scrims, white hairlines (use `color-mix` from the text token), ' +
+    'and any third-party component you do not own.',
   order:
-    "Replace literals → delete redundant per-theme overrides → add `color-scheme` → states → remove fallbacks.",
-  findings: "",
-   // evidence / working notes (analyze.op.md §2): stored so the harness is
-   // self-contained; printed as an appendix of the generated guide
-   inventory: "",
-   tokenMap: "",
-   relations: "",
-   expected: "",
+    'Replace literals → delete redundant per-theme overrides → add `color-scheme` → states → remove fallbacks.',
+  findings: '',
+  // evidence / working notes (analyze.op.md §2): stored so the harness is
+  // self-contained; printed as an appendix of the generated guide
+  inventory: '',
+  tokenMap: '',
+  relations: '',
+  expected: '',
   preview: { html: DEFAULT_PREVIEW_HTML, css: DEFAULT_PREVIEW_CSS },
 };
 
-const clone = (v) => (typeof structuredClone === "function" ? structuredClone(v) : JSON.parse(JSON.stringify(v)));
+const clone = (v) =>
+  typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v));
 const listeners = new Set();
 let current = clone(DEFAULT_DOC);
 
@@ -82,7 +82,11 @@ export const themeDoc = {
   /** Replace the whole document; missing fields fall back to the defaults. */
   set(next = {}) {
     const d = clone(next ?? {});
-    current = { ...clone(DEFAULT_DOC), ...d, preview: { ...DEFAULT_DOC.preview, ...(d.preview ?? {}) } };
+    current = {
+      ...clone(DEFAULT_DOC),
+      ...d,
+      preview: { ...DEFAULT_DOC.preview, ...(d.preview ?? {}) },
+    };
     emit();
   },
   patch(delta) {
@@ -104,8 +108,8 @@ export const themeDoc = {
 
 /** File-name stem from a project title. */
 export const slug = (s) =>
-  String(s ?? "")
+  String(s ?? '')
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "theme";
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'theme';

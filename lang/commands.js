@@ -1,9 +1,9 @@
 // Console-only verbs. The parser applies model-level commands directly to
 // its working copy of the sketch; `solve` is handed back to the host.
-import * as M from "../core/model.js";
-import { alignSketchFrame } from "../core/problem.js";
+import * as M from '../core/model.js';
+import { alignSketchFrame } from '../core/problem.js';
 
-export const COMMANDS = ["solve", "reset", "adopt", "center", "delete", "set", "move"];
+export const COMMANDS = ['solve', 'reset', 'adopt', 'center', 'delete', 'set', 'move'];
 
 /**
  * Apply a command to a sketch. Returns true when handled here, false when
@@ -12,25 +12,25 @@ export const COMMANDS = ["solve", "reset", "adopt", "center", "delete", "set", "
  */
 export function applyCommand(sketch, cmd, registry) {
   switch (cmd.op) {
-    case "reset":
+    case 'reset':
       M.resetSolution(sketch);
       return true;
-    case "adopt":
+    case 'adopt':
       M.adoptSolution(sketch);
       return true;
-    case "center":
+    case 'center':
       alignSketchFrame(sketch, registry);
       return true;
-    case "delete":
+    case 'delete':
       if (!M.removeEntity(sketch, cmd.ref)) throw new Error(`Unknown entity '${cmd.ref}'`);
       return true;
-    case "set":
+    case 'set':
       M.setVariable(sketch, cmd.ref, cmd.value);
       return true;
-    case "move":
+    case 'move':
       M.movePoint(sketch, cmd.ref, cmd.seed);
       return true;
-    case "solve":
+    case 'solve':
       return false;
     default:
       throw new Error(`Unknown command '${cmd.op}'`);

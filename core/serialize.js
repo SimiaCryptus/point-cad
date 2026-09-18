@@ -1,5 +1,5 @@
 // JSON import/export with versioning hooks.
-import { createSketch, cloneDeep } from "./model.js";
+import { createSketch, cloneDeep } from './model.js';
 
 export const CURRENT_VERSION = 1;
 
@@ -32,13 +32,13 @@ export function toJSONString(sketch, space = 2) {
 }
 
 export function fromJSON(input) {
-  const doc = typeof input === "string" ? JSON.parse(input) : input;
-  if (!doc || typeof doc !== "object") throw new Error("Not a sketch document");
+  const doc = typeof input === 'string' ? JSON.parse(input) : input;
+  if (!doc || typeof doc !== 'object') throw new Error('Not a sketch document');
   return createSketch(migrate(doc));
 }
 
 /** Guess whether a text blob is JSON or a PCS script. */
 export function sniffFormat(text) {
   const t = String(text).trimStart();
-  return t.startsWith("{") ? "json" : "pcad";
+  return t.startsWith('{') ? 'json' : 'pcad';
 }

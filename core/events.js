@@ -24,6 +24,6 @@ export class Emitter {
 
   emit(type, detail) {
     for (const fn of [...(this._handlers.get(type) ?? [])]) fn(detail);
-    for (const fn of [...(this._handlers.get("*") ?? [])]) fn({ type, detail });
+    for (const fn of [...(this._handlers.get('*') ?? [])]) fn({ type, detail });
   }
 }

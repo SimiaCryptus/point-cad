@@ -12,7 +12,7 @@ format. Both views of the sketch are kept in sync.
 The component is a small "3D constraint sketcher" in the spirit of a CAD
 sketch tool, but deliberately minimal at the core so it can be embedded in
 many host applications and extended with new geometry (areas, volumes,
-curves) — and eventually new *spaces* (projective, curved) — without
+curves) — and eventually new _spaces_ (projective, curved) — without
 modifying the core.
 
 ---
@@ -35,7 +35,7 @@ modifying the core.
 - **Scriptable**: the whole world can be constructed from text. The same
   microlanguage is typed into a console panel, executed by hosts, and written
   to disk as the primary human-readable file format.
-- **Predictable**: solving is explicit (user clicks *Solve* or runs `solve`),
+- **Predictable**: solving is explicit (user clicks _Solve_ or runs `solve`),
   so the user is never fighting a live solver while sketching.
 - **Serializable**: the entire sketch (variables, points, constraints,
   settings) round-trips through both plain JSON and the script format.
@@ -47,7 +47,7 @@ modifying the core.
 - Surface or mesh rendering. v1 draws points, segments, labels and constraint
   glyphs only.
 - Live/continuous solving while dragging (may be an opt-in later).
-- *Implementing* non-Euclidean or projective spaces. The architecture is
+- _Implementing_ non-Euclidean or projective spaces. The architecture is
   shaped so they can be added (see §6), but v1 ships only Euclidean ℝ³.
 
 ---
@@ -64,9 +64,9 @@ reference.
 { id: "A1", name: "theta",      value: 30,  unit: "deg", locked: false }
 ```
 
-- `locked: true`  → the solver treats the value as a fixed input.
+- `locked: true` → the solver treats the value as a fixed input.
 - `locked: false` → the solver may adjust the value to satisfy constraints
-  (i.e. the variable is a *free* unknown; the solved value is written back).
+  (i.e. the variable is a _free_ unknown; the solved value is written back).
 - Variables may be referenced by multiple constraints, which is how
   "length = another length" is expressed (both reference the same variable),
   or via an explicit equality constraint between two variables.
@@ -119,7 +119,7 @@ involved.
 #### 3.3.3 Target kinds (shared by all constraint types)
 
 | kind       | meaning                                                         |
-|------------|-----------------------------------------------------------------|
+| ---------- | --------------------------------------------------------------- |
 | `value`    | equal a literal number                                          |
 | `variable` | equal a named variable (locked or free)                         |
 | `minimize` | objective term: make the measured quantity as small as possible |
@@ -172,7 +172,7 @@ relations, and the microlanguage's macros (§7.4) let users package these
 recipes under friendly names without the core learning any new geometry.
 
 | relation                | construction with fundamentals                                                        |
-|-------------------------|---------------------------------------------------------------------------------------|
+| ----------------------- | ------------------------------------------------------------------------------------- |
 | perpendicular `AB ⊥ BC` | `angle A B C = 90`                                                                    |
 | collinear, `B` between  | `angle A B C = 180` (`= 0` for `B` outside the segment)                               |
 | equal lengths           | both distances target the **same** variable (locked or free)                          |
@@ -183,7 +183,7 @@ recipes under friendly names without the core learning any new geometry.
 **Parallel lines in 3D.** Parallelism is the interesting case, because the
 planar trick (equal corresponding angles to a transversal) does not survive in
 3D — two lines can make equal angles with a third and still be skew. The
-general construction is a *translation via parallelogram*, which works in any
+general construction is a _translation via parallelogram_, which works in any
 dimension:
 
 1. Add a helper point `E` meant to satisfy `E − C = B − A` (translate `AB` so
@@ -336,8 +336,8 @@ distances by geodesic integration). The sketch document records
 
 The microlanguage is both a **UI facet** (a script/console panel where
 statements take effect as you type them) and the **file format** (`.pcad`).
-It is line-oriented, declarative and deliberately tiny: a file is a *set of
-facts* about a world, not a program. JSON remains the canonical in-memory
+It is line-oriented, declarative and deliberately tiny: a file is a _set of
+facts_ about a world, not a program. JSON remains the canonical in-memory
 model and machine interchange format; the two are lossless in both
 directions.
 
@@ -414,7 +414,7 @@ command     := "solve" | "reset" | "adopt" | "delete" IDENT
 `def` bundles statements under a name with positional parameters (§4 shows
 `parallel`). Macros are stored in the document so files stay self-contained,
 and helper entities they create are tagged with their macro instance so the
-UI can fold them away and the emitter can write the *call* rather than the
+UI can fold them away and the emitter can write the _call_ rather than the
 expansion. Macro bodies expand only to fundamental statements — the core
 never learns what "parallel" means.
 
@@ -503,11 +503,11 @@ Future kinds (`area`, `curveLength`, `tangent`, `volume`, `parallel`,
 The component emits DOM `CustomEvent`s (bubbling, composed) so hosts can
 react without touching internals:
 
-- `pointcad:change`   – any model edit (detail: `{ sketch, script }`)
-- `pointcad:solve`    – solve completed (detail: `{ result, sketch }`)
-- `pointcad:select`   – selection changed (detail: `{ ids }`)
-- `pointcad:exec`     – script statement(s) applied (detail: `{ source, ops }`)
-- `pointcad:error`    – validation, parse or solver failure
+- `pointcad:change` – any model edit (detail: `{ sketch, script }`)
+- `pointcad:solve` – solve completed (detail: `{ result, sketch }`)
+- `pointcad:select` – selection changed (detail: `{ ids }`)
+- `pointcad:exec` – script statement(s) applied (detail: `{ source, ops }`)
+- `pointcad:error` – validation, parse or solver failure
 
 ---
 
@@ -522,7 +522,8 @@ react without touching internals:
   src="./truss.pcad"
   readonly="false"
   panels="variables,points,constraints,script,solve"
-  theme="light">
+  theme="light"
+>
 </point-cad>
 ```
 
@@ -553,12 +554,12 @@ el.fromScript(script);              // import
 ### 9.3 Headless
 
 ```js
-import { buildProblem, solvers } from "./point-cad/core/index.js";
-import { parse, emit } from "./point-cad/lang/index.js";
+import { buildProblem, solvers } from './point-cad/core/index.js';
+import { parse, emit } from './point-cad/lang/index.js';
 
-const sketch = parse(await fs.readFile("truss.pcad", "utf8"));
+const sketch = parse(await fs.readFile('truss.pcad', 'utf8'));
 const result = solvers.gaussNewton.solve(buildProblem(sketch));
-await fs.writeFile("truss.solved.pcad", emit(sketch, { adoptSolution: true }));
+await fs.writeFile('truss.solved.pcad', emit(sketch, { adoptSolution: true }));
 ```
 
 Useful for server-side validation, tests, or hosts with their own renderer.
@@ -578,12 +579,12 @@ Useful for server-side validation, tests, or hosts with their own renderer.
    Statements execute on Enter; the script re-renders after any edit made
    elsewhere. Parse errors are inline; nothing is applied until a line is
    valid.
-5. **Solve panel** – *Solve* button, solver options, result summary
+5. **Solve panel** – _Solve_ button, solver options, result summary
    (converged, iterations, residual, rigid-body vs. real DOF), per-constraint
-   status list. *Reset to seeds* and *Adopt solution as seeds* buttons.
+   status list. _Reset to seeds_ and _Adopt solution as seeds_ buttons.
 6. **Viewport** – orbit / pan / zoom camera, perspective or orthographic,
    ground grid on a chosen plane, axis triad, point picking. Dragging a point
-   edits its *seed*: free-drag moves it in the camera-facing plane, and axis
+   edits its _seed_: free-drag moves it in the camera-facing plane, and axis
    handles constrain the drag to X, Y or Z. Shows seed ghost + solved
    position, labels, and distance/angle glyphs colored by residual.
 
@@ -592,7 +593,7 @@ Useful for server-side validation, tests, or hosts with their own renderer.
 ## 11. Extension Roadmap
 
 | phase | additions                                                                                                                           |
-|-------|-------------------------------------------------------------------------------------------------------------------------------------|
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | v1    | 3D points, variables, distance & angle constraints, GN solver, Euclidean space, JSON + PCS I/O, macros                              |
 | v1.1  | equality-between-variables, variable expressions (`L1 * 2`), native `parallel` / `coplanar` / `onPlane` kinds graduated from macros |
 | v2    | `area` entity (polygon of points) + area constraints; `volume` entity (tetra / polyhedron) + volume constraints                     |
@@ -611,7 +612,7 @@ Useful for server-side validation, tests, or hosts with their own renderer.
   6 rigid-body DOF be auto-removed by pinning the first point and axes?
 - Angle representation for extensions: keep degrees at the API boundary and
   radians internally.
-- Script vs. JSON as the *default* save format for the demo — script is
+- Script vs. JSON as the _default_ save format for the demo — script is
   friendlier, JSON is stricter. Current plan: script by default, JSON via
   export menu.
 - Macro hygiene: should helper points created inside a macro be addressable
@@ -623,4 +624,3 @@ Useful for server-side validation, tests, or hosts with their own renderer.
   registry's `spaces` filter handles this, but should incidence kinds
   (`onLine`, `onPlane`) be designed now so they read naturally in both
   Euclidean and projective sketches?
-

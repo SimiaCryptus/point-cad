@@ -1,27 +1,32 @@
 // Handoff: the token table, the generated CSS, the integration guide
 // (markdown) and a self-contained copy of the harness, plus the tool
 // window that edits the fields all of them read.
-import { h, panelShell, fmt } from "../../../ui/dom.js";
-import { emitCSS } from "../emit-css.js";
-import { emitTokensString } from "../emit-tokens.js";
-import { exportedPoints, themeList, kebab } from "../themes.js";
-import { themeDoc, slug } from "./doc-store.js";
+import { h, panelShell, fmt } from '../../../ui/dom.js';
+import { emitCSS } from '../emit-css.js';
+import { emitTokensString } from '../emit-tokens.js';
+import { exportedPoints, themeList, kebab } from '../themes.js';
+import { themeDoc, slug } from './doc-store.js';
 
-export const FORMATS = ["oklch", "oklab", "rgb", "hex"];
-export const SWITCH_MODES = ["media", "attribute", "class"];
+export const FORMATS = ['oklch', 'oklab', 'rgb', 'hex'];
+export const SWITCH_MODES = ['media', 'attribute', 'class'];
 
-const list = (s) => String(s ?? "").split(",").map((x) => x.trim()).filter(Boolean);
-const fence = (lang, body) => ["```" + lang, String(body ?? "").replace(/\s+$/, ""), "```"].join("\n");
-const num = (v) => (Array.isArray(v) ? v.map((x) => fmt(x, 4)).join(", ") : fmt(v, 4));
+const list = (s) =>
+  String(s ?? '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
+const fence = (lang, body) =>
+  ['```' + lang, String(body ?? '').replace(/\s+$/, ''), '```'].join('\n');
+const num = (v) => (Array.isArray(v) ? v.map((x) => fmt(x, 4)).join(', ') : fmt(v, 4));
 
 /** Emitter options described by the document. */
 export function cssOptions(d = themeDoc.get()) {
   return {
-    prefix: d.prefix ?? "",
-    format: FORMATS.includes(d.format) ? d.format : "oklch",
+    prefix: d.prefix ?? '',
+    format: FORMATS.includes(d.format) ? d.format : 'oklch',
     switchMode: list(d.switchMode),
     defaultTheme: d.defaultTheme || null,
-    scope: d.scope || ":root",
+    scope: d.scope || ':root',
     fallback: !!d.fallback,
   };
 }
@@ -43,14 +48,19 @@ export function buildCSS(ctx, d = themeDoc.get()) {
 }
 
 export function buildTokens(ctx, d = themeDoc.get()) {
-  return emitTokensString(ctx.sketch, ctx.result, { format: cssOptions(d).format, registry: ctx.registry });
+  return emitTokensString(ctx.sketch, ctx.result, {
+    format: cssOptions(d).format,
+    registry: ctx.registry,
+  });
 }
 
 /** One row per exported colour: token, custom property, role, value per theme. */
 export function tokenRows(ctx, d = themeDoc.get()) {
   const space = ctx.getSpace();
-  if (typeof space.formatLiteral !== "function") {
-    throw new Error(`Space '${ctx.sketch.space}' is not a colour space — start the script with 'space oklab'.`);
+  if (typeof space.formatLiteral !== 'function') {
+    throw new Error(
+      `Space '${ctx.sketch.space}' is not a colour space — start the script with 'space oklab'.`
+    );
   }
   const { prefix, format } = cssOptions(d);
   const themes = themeList(ctx.sketch, ctx.result);
@@ -58,21 +68,27 @@ export function tokenRows(ctx, d = themeDoc.get()) {
     id: p.id,
     token: p.label,
     property: `--${prefix}${kebab(p.label)}`,
-    role: p.role ?? "derived",
-    values: themes.map((t) => ({ theme: t.id ?? "default", value: space.formatLiteral(t.colors.get(p.id), format) })),
+    role: p.role ?? 'derived',
+    values: themes.map((t) => ({
+      theme: t.id ?? 'default',
+      value: space.formatLiteral(t.colors.get(p.id), format),
+    })),
   }));
 }
 
 const unmetFor = (r, theme) => {
-  const rows = theme != null && r.perScenario ? r.perScenario[theme]?.residuals ?? [] : r.perConstraint ?? [];
-  return rows.filter((x) => x.status === "bad" || x.violated === true);
+  const rows =
+    theme != null && r.perScenario
+      ? (r.perScenario[theme]?.residuals ?? [])
+      : (r.perConstraint ?? []);
+  return rows.filter((x) => x.status === 'bad' || x.violated === true);
 };
 
 /**
  * Integration guide: everything a human or an agent needs to adopt the
  * palette — tokens, CSS, the adoption steps, the migration prose, the
-  * sketch that generated it, the solver report and, as an appendix, the
-  * evidence fields (inventory, token map, relations, expected output).
+ * sketch that generated it, the solver report and, as an appendix, the
+ * evidence fields (inventory, token map, relations, expected output).
  */
 export function buildMarkdown(ctx, d = themeDoc.get()) {
   const sk = ctx.sketch;
@@ -88,105 +104,130 @@ export function buildMarkdown(ctx, d = themeDoc.get()) {
   const themes = rows[0]?.values.map((v) => v.theme) ?? (sk.scenarios ?? []).map((s) => s.id);
   const r = ctx.result;
   const out = [];
-  const head = (t) => out.push("", `## ${t}`, "");
+  const head = (t) => out.push('', `## ${t}`, '');
   const prose = (t, body) => {
     head(t);
-    out.push(String(body ?? "").trim() || "_(not supplied)_");
+    out.push(String(body ?? '').trim() || '_(not supplied)_');
   };
 
-  out.push(`# ${d.project || "Untitled"} — colour tokens`, "");
-  out.push("Generated by the Point-CAD theme designer. The **sketch** at the end is the source of truth: it states");
-  out.push("the design rules (contrast floors, lightness ramps, hue families) and the solver derives every colour");
-  out.push(`from them. Re-open \`${files.html}\` to change a rule and regenerate — never hand-edit the CSS.`);
+  out.push(`# ${d.project || 'Untitled'} — colour tokens`, '');
+  out.push(
+    'Generated by the Point-CAD theme designer. The **sketch** at the end is the source of truth: it states'
+  );
+  out.push(
+    'the design rules (contrast floors, lightness ramps, hue families) and the solver derives every colour'
+  );
+  out.push(
+    `from them. Re-open \`${files.html}\` to change a rule and regenerate — never hand-edit the CSS.`
+  );
 
-  head("At a glance");
-  out.push("| field | value |", "|---|---|");
+  head('At a glance');
+  out.push('| field | value |', '|---|---|');
   out.push(`| generated | ${new Date().toISOString()} |`);
   out.push(`| space | \`${sk.space}\` |`);
-  out.push(`| themes | ${themes.length ? themes.join(", ") : "—"} |`);
-  out.push(`| tokens | ${rows.length}${rowError ? ` (${rowError})` : ""} |`);
+  out.push(`| themes | ${themes.length ? themes.join(', ') : '—'} |`);
+  out.push(`| tokens | ${rows.length}${rowError ? ` (${rowError})` : ''} |`);
   out.push(`| custom properties | \`--${opt.prefix}<token>\` |`);
-  out.push(`| colour format | \`${opt.format}\`${opt.fallback ? ", with an \`rgb()\` fallback" : ""} |`);
-  out.push(`| switching | ${opt.switchMode.join(", ") || "none"} on \`${opt.scope}\` |`);
-  out.push(`| solve | ${r ? `converged=${r.converged}, iterations=${r.iterations}, residual ${r.residualNorm.toExponential(3)}` : "**not run** — solve before shipping"} |`);
-  out.push(`| artefacts | \`${files.css}\` · \`${files.tokens}\` · \`${files.pcad}\` · \`${files.html}\` |`);
+  out.push(
+    `| colour format | \`${opt.format}\`${opt.fallback ? ', with an \`rgb()\` fallback' : ''} |`
+  );
+  out.push(`| switching | ${opt.switchMode.join(', ') || 'none'} on \`${opt.scope}\` |`);
+  out.push(
+    `| solve | ${r ? `converged=${r.converged}, iterations=${r.iterations}, residual ${r.residualNorm.toExponential(3)}` : '**not run** — solve before shipping'} |`
+  );
+  out.push(
+    `| artefacts | \`${files.css}\` · \`${files.tokens}\` · \`${files.pcad}\` · \`${files.html}\` |`
+  );
 
-  prose("1. Summary", d.summary);
+  prose('1. Summary', d.summary);
 
-  head("2. Tokens");
-  if (!rows.length) out.push(rowError ? `_${rowError}_` : "_No exported colours._");
+  head('2. Tokens');
+  if (!rows.length) out.push(rowError ? `_${rowError}_` : '_No exported colours._');
   else {
-    out.push(`| token | custom property | role | ${themes.join(" | ")} |`);
-    out.push(`|---|---|---|${themes.map(() => "---|").join("")}`);
+    out.push(`| token | custom property | role | ${themes.join(' | ')} |`);
+    out.push(`|---|---|---|${themes.map(() => '---|').join('')}`);
     for (const row of rows) {
-      out.push(`| \`${row.token}\` | \`${row.property}\` | ${row.role} | ${row.values.map((v) => `\`${v.value}\``).join(" | ")} |`);
+      out.push(
+        `| \`${row.token}\` | \`${row.property}\` | ${row.role} | ${row.values.map((v) => `\`${v.value}\``).join(' | ')} |`
+      );
     }
   }
 
   head(`3. Generated CSS (\`${files.css}\`)`);
   try {
-    out.push(fence("css", buildCSS(ctx, d)));
+    out.push(fence('css', buildCSS(ctx, d)));
   } catch (e) {
     out.push(`_CSS could not be generated: ${e.message}_`);
   }
 
-  head("4. How to adopt (human or agent)");
-  out.push([
-    `1. Save the CSS above as \`${files.css}\` and load it **before** every other stylesheet.`,
-    `2. Work through §5 and replace each literal with its \`var(--${opt.prefix}…)\` token, file by file.`,
-    "3. Delete the per-theme declarations that only swapped a colour; the token now carries the theme.",
-    "4. Apply the theme plumbing in §6 (switching mechanism and `color-scheme`).",
-    "5. Convert translucent and state colours as described in §7; leave §8 alone.",
-    "6. Follow the order of work in §9, then remove the `var(--x, <literal>)` fallbacks.",
-    `7. Verify: no colour literal outside \`${files.css}\` (except those listed in §8), and the page is unchanged`,
-    "   except for the deliberate changes listed in §10.",
-    "",
-    "Agent note: the only editable colour source is the sketch in §11. To change a colour, change a rule or an",
-    `anchor there, re-solve, and re-export \`${files.css}\` and this guide; do not patch the generated CSS.`,
-  ].join("\n"));
+  head('4. How to adopt (human or agent)');
+  out.push(
+    [
+      `1. Save the CSS above as \`${files.css}\` and load it **before** every other stylesheet.`,
+      `2. Work through §5 and replace each literal with its \`var(--${opt.prefix}…)\` token, file by file.`,
+      '3. Delete the per-theme declarations that only swapped a colour; the token now carries the theme.',
+      '4. Apply the theme plumbing in §6 (switching mechanism and `color-scheme`).',
+      '5. Convert translucent and state colours as described in §7; leave §8 alone.',
+      '6. Follow the order of work in §9, then remove the `var(--x, <literal>)` fallbacks.',
+      `7. Verify: no colour literal outside \`${files.css}\` (except those listed in §8), and the page is unchanged`,
+      '   except for the deliberate changes listed in §10.',
+      '',
+      'Agent note: the only editable colour source is the sketch in §11. To change a colour, change a rule or an',
+      `anchor there, re-solve, and re-export \`${files.css}\` and this guide; do not patch the generated CSS.`,
+    ].join('\n')
+  );
 
-  prose("5. Replacement map", d.replacements);
-  prose("6. Theme plumbing", d.plumbing);
-  prose("7. Alpha, states and derived values", d.alpha);
-  prose("8. Do not tokenise", d.skip);
-  prose("9. Order of work", d.order);
-  prose("10. Findings and open questions", d.findings);
+  prose('5. Replacement map', d.replacements);
+  prose('6. Theme plumbing', d.plumbing);
+  prose('7. Alpha, states and derived values', d.alpha);
+  prose('8. Do not tokenise', d.skip);
+  prose('9. Order of work', d.order);
+  prose('10. Findings and open questions', d.findings);
 
   head(`11. Source of truth — the sketch (\`${files.pcad}\`)`);
-  out.push(fence("pcad", ctx.toScript()));
+  out.push(fence('pcad', ctx.toScript()));
 
-  head("12. Demonstration");
-  out.push("CSS appended after the generated custom properties:", "");
-  out.push(fence("css", d.preview?.css ?? ""));
-  out.push("", "Markup it styles:", "");
-  out.push(fence("html", d.preview?.html ?? ""));
+  head('12. Demonstration');
+  out.push('CSS appended after the generated custom properties:', '');
+  out.push(fence('css', d.preview?.css ?? ''));
+  out.push('', 'Markup it styles:', '');
+  out.push(fence('html', d.preview?.html ?? ''));
 
-  head("13. Solver report");
-  if (!r) out.push("_The palette was not solved in this session._");
+  head('13. Solver report');
+  if (!r) out.push('_The palette was not solved in this session._');
   else {
-    out.push(`\`converged=${r.converged}\` · iterations ${r.iterations} · residual ${r.residualNorm.toExponential(3)} · unknowns ${r.unknowns} · rank ${r.rank}`);
+    out.push(
+      `\`converged=${r.converged}\` · iterations ${r.iterations} · residual ${r.residualNorm.toExponential(3)} · unknowns ${r.unknowns} · rank ${r.rank}`
+    );
     const names = themes.length ? themes : [null];
     for (const t of names) {
-      const unmet = unmetFor(r, t === "default" ? null : t);
-      out.push("", `**${t ?? "default"}** — ${unmet.length ? `${unmet.length} unmet constraint(s):` : "all constraints satisfied"}`);
+      const unmet = unmetFor(r, t === 'default' ? null : t);
+      out.push(
+        '',
+        `**${t ?? 'default'}** — ${unmet.length ? `${unmet.length} unmet constraint(s):` : 'all constraints satisfied'}`
+      );
       for (const x of unmet) {
-        out.push(`- \`${x.type} ${x.points.join(" ")}\` measure ${num(x.measure)} vs ${num(x.target)} (Δ ${num(x.residual)})`);
+        out.push(
+          `- \`${x.type} ${x.points.join(' ')}\` measure ${num(x.measure)} vs ${num(x.target)} (Δ ${num(x.residual)})`
+        );
       }
     }
   }
-   const evidence = [
-     ["A. Colour inventory", d.inventory],
-     ["B. Token map", d.tokenMap],
-     ["C. Relations found", d.relations],
-     ["D. Expected solver output", d.expected],
-   ].filter(([, body]) => String(body ?? "").trim());
-   if (evidence.length) {
-     head("Appendix — evidence");
-     out.push("Working notes from the analysis that produced the sketch (`analyze.op.md` §2): why each rule exists.");
-     for (const [t, body] of evidence) out.push("", `### ${t}`, "", String(body).trim());
-   }
-  out.push("");
-  return out.join("\n");
+  const evidence = [
+    ['A. Colour inventory', d.inventory],
+    ['B. Token map', d.tokenMap],
+    ['C. Relations found', d.relations],
+    ['D. Expected solver output', d.expected],
+  ].filter(([, body]) => String(body ?? '').trim());
+  if (evidence.length) {
+    head('Appendix — evidence');
+    out.push(
+      'Working notes from the analysis that produced the sketch (`analyze.op.md` §2): why each rule exists.'
+    );
+    for (const [t, body] of evidence) out.push('', `### ${t}`, '', String(body).trim());
+  }
+  out.push('');
+  return out.join('\n');
 }
 
 const HARNESS_STYLE = `html, body { margin: 0; height: 100%; font: 14px system-ui, sans-serif; background: #eef0f3; }
@@ -197,7 +238,7 @@ const HARNESS_STYLE = `html, body { margin: 0; height: 100%; font: 14px system-u
     button { font: inherit; padding: 4px 10px; }
     button.primary { background: #2f6fed; border: 1px solid #2f6fed; color: #fff; border-radius: 4px; }`;
 
-const jsonScript = (payload) => JSON.stringify(payload, null, 2).replace(/</g, "\\u003c");
+const jsonScript = (payload) => JSON.stringify(payload, null, 2).replace(/</g, '\\u003c');
 
 /**
  * A standalone copy of the harness with the sketch and every handoff field
@@ -205,16 +246,16 @@ const jsonScript = (payload) => JSON.stringify(payload, null, 2).replace(/</g, "
  * the migration prose, and its buttons regenerate the CSS / tokens / guide.
  */
 export function buildHarnessHTML(ctx, d = themeDoc.get()) {
-  const boot = new URL("./harness.js", import.meta.url).href;
+  const boot = new URL('./harness.js', import.meta.url).href;
   const files = fileNames(d);
   const payload = {
-    generator: "point-cad theme designer",
+    generator: 'point-cad theme designer',
     generated: new Date().toISOString(),
     module: boot,
     doc: d,
     pcad: ctx.toScript(),
   };
-  const title = `${d.project || "Untitled"} — Point-CAD theme`;
+  const title = `${d.project || 'Untitled'} — Point-CAD theme`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -259,17 +300,23 @@ ${jsonScript(payload)}
 export function artifact(ctx, kind, d = themeDoc.get()) {
   const files = fileNames(d);
   switch (kind) {
-    case "css": return { name: files.css, text: buildCSS(ctx, d), type: "text/css" };
-    case "tokens": return { name: files.tokens, text: buildTokens(ctx, d), type: "application/json" };
-    case "pcad": return { name: files.pcad, text: ctx.toScript(), type: "text/plain" };
-    case "md": return { name: files.md, text: buildMarkdown(ctx, d), type: "text/markdown" };
-    case "html": return { name: files.html, text: buildHarnessHTML(ctx, d), type: "text/html" };
-    default: throw new Error(`Unknown export '${kind}'`);
+    case 'css':
+      return { name: files.css, text: buildCSS(ctx, d), type: 'text/css' };
+    case 'tokens':
+      return { name: files.tokens, text: buildTokens(ctx, d), type: 'application/json' };
+    case 'pcad':
+      return { name: files.pcad, text: ctx.toScript(), type: 'text/plain' };
+    case 'md':
+      return { name: files.md, text: buildMarkdown(ctx, d), type: 'text/markdown' };
+    case 'html':
+      return { name: files.html, text: buildHarnessHTML(ctx, d), type: 'text/html' };
+    default:
+      throw new Error(`Unknown export '${kind}'`);
   }
 }
 
-export function download(name, text, type = "text/plain") {
-  const a = document.createElement("a");
+export function download(name, text, type = 'text/plain') {
+  const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: `${type};charset=utf-8` }));
   a.download = name;
   a.click();
@@ -285,9 +332,15 @@ export function saveArtifact(ctx, kind, d = themeDoc.get()) {
 /** Minimal panel-style context around a <point-cad> element (for host pages). */
 export function hostContext(el) {
   return {
-    get sketch() { return el.sketch; },
-    get result() { return el.result; },
-    get registry() { return el.registry; },
+    get sketch() {
+      return el.sketch;
+    },
+    get result() {
+      return el.result;
+    },
+    get registry() {
+      return el.registry;
+    },
     getSpace: () => el.registry.getSpace(el.sketch.space),
     toScript: () => el.toScript(),
   };
@@ -298,39 +351,88 @@ export function createHandoffPanel(ctx) {
   const bound = new Map();
   const bind = (key, input) => {
     bound.set(key, input);
-    const write = () => themeDoc.patch({ [key]: input.type === "checkbox" ? input.checked : input.value });
-    input.addEventListener("input", write);
-    input.addEventListener("change", write);
+    const write = () =>
+      themeDoc.patch({ [key]: input.type === 'checkbox' ? input.checked : input.value });
+    input.addEventListener('input', write);
+    input.addEventListener('change', write);
     return input;
   };
-  const textIn = (key, title, cls = "pc-in") => bind(key, h("input", { type: "text", class: cls, title }));
-  const areaIn = (key, rows, ph) => bind(key, h("textarea", { class: "pc-template", rows, spellcheck: "false", placeholder: ph }));
-  const field = (label, input, hint) => h("div", { class: "pc-field" }, h("label", {}, label), input, hint ? h("div", { class: "pc-muted" }, hint) : null);
-   const section = (title, open, ...kids) => h("details", { class: "pc-doc-section", open }, h("summary", {}, title), ...kids);
+  const textIn = (key, title, cls = 'pc-in') =>
+    bind(key, h('input', { type: 'text', class: cls, title }));
+  const areaIn = (key, rows, ph) =>
+    bind(key, h('textarea', { class: 'pc-template', rows, spellcheck: 'false', placeholder: ph }));
+  const field = (label, input, hint) =>
+    h(
+      'div',
+      { class: 'pc-field' },
+      h('label', {}, label),
+      input,
+      hint ? h('div', { class: 'pc-muted' }, hint) : null
+    );
+  const section = (title, open, ...kids) =>
+    h('details', { class: 'pc-doc-section', open }, h('summary', {}, title), ...kids);
 
-  const projectIn = textIn("project", "Used in the guide's title and in every file name");
-  const prefixIn = textIn("prefix", "Custom-property prefix", "pc-in pc-in-pt");
-  const formatSel = bind("format", h("select", { class: "pc-in", title: "Colour notation written into the CSS" }, ...FORMATS.map((f) => h("option", { value: f }, f))));
-  const scopeIn = textIn("scope", "Selector the default block is written on", "pc-in pc-in-pt");
-  const switchIn = textIn("switchMode", `Comma separated: ${SWITCH_MODES.join(", ")}`);
-  const defaultSel = bind("defaultTheme", h("select", { class: "pc-in", title: "Theme written into the default block" }));
-  const fallbackChk = bind("fallback", h("input", { type: "checkbox", title: "Emit rgb() before oklch() for older browsers" }));
+  const projectIn = textIn('project', "Used in the guide's title and in every file name");
+  const prefixIn = textIn('prefix', 'Custom-property prefix', 'pc-in pc-in-pt');
+  const formatSel = bind(
+    'format',
+    h(
+      'select',
+      { class: 'pc-in', title: 'Colour notation written into the CSS' },
+      ...FORMATS.map((f) => h('option', { value: f }, f))
+    )
+  );
+  const scopeIn = textIn('scope', 'Selector the default block is written on', 'pc-in pc-in-pt');
+  const switchIn = textIn('switchMode', `Comma separated: ${SWITCH_MODES.join(', ')}`);
+  const defaultSel = bind(
+    'defaultTheme',
+    h('select', { class: 'pc-in', title: 'Theme written into the default block' })
+  );
+  const fallbackChk = bind(
+    'fallback',
+    h('input', { type: 'checkbox', title: 'Emit rgb() before oklch() for older browsers' })
+  );
 
-  const summaryTa = areaIn("summary", 3, "What this palette is, which stylesheets it replaces, which themes were found vs. proposed.");
-  const replTa = areaIn("replacements", 6, "| literal | where | property | token | replacement |");
-  const plumbTa = areaIn("plumbing", 4);
-  const alphaTa = areaIn("alpha", 4);
-  const skipTa = areaIn("skip", 3);
-  const orderTa = areaIn("order", 3);
-  const findTa = areaIn("findings", 4, "Accessibility failures, aggressive merges, ambiguous roles, proposed themes…");
-   const inventoryTa = areaIn("inventory", 6, "| cluster | members | normalised oklch() | text | bg | border | other | alpha | theme | states |");
-   const tokenMapTa = areaIn("tokenMap", 6, "| token | custom property | role | light (observed) | dark (observed / derived) | clusters merged | notes |");
-   const relationsTa = areaIn("relations", 6, "| rule | tokens | measured evidence per theme | holds / floor the CSS fails / design decision |");
-   const expectedTa = areaIn("expected", 4, "What Save CSS emits, the solve log line, and which derived tokens move more than ΔE 0.05 from their seed and why.");
+  const summaryTa = areaIn(
+    'summary',
+    3,
+    'What this palette is, which stylesheets it replaces, which themes were found vs. proposed.'
+  );
+  const replTa = areaIn('replacements', 6, '| literal | where | property | token | replacement |');
+  const plumbTa = areaIn('plumbing', 4);
+  const alphaTa = areaIn('alpha', 4);
+  const skipTa = areaIn('skip', 3);
+  const orderTa = areaIn('order', 3);
+  const findTa = areaIn(
+    'findings',
+    4,
+    'Accessibility failures, aggressive merges, ambiguous roles, proposed themes…'
+  );
+  const inventoryTa = areaIn(
+    'inventory',
+    6,
+    '| cluster | members | normalised oklch() | text | bg | border | other | alpha | theme | states |'
+  );
+  const tokenMapTa = areaIn(
+    'tokenMap',
+    6,
+    '| token | custom property | role | light (observed) | dark (observed / derived) | clusters merged | notes |'
+  );
+  const relationsTa = areaIn(
+    'relations',
+    6,
+    '| rule | tokens | measured evidence per theme | holds / floor the CSS fails / design decision |'
+  );
+  const expectedTa = areaIn(
+    'expected',
+    4,
+    'What Save CSS emits, the solve log line, and which derived tokens move more than ΔE 0.05 from their seed and why.'
+  );
 
-  const tokensBox = h("div", { class: "pc-doc-tokens" });
-  const status = h("div", { class: "pc-muted pc-doc-status" });
-  const btn = (label, title, onclick, cls = "") => h("button", { class: `pc-btn ${cls}`.trim(), type: "button", title, onclick }, label);
+  const tokensBox = h('div', { class: 'pc-doc-tokens' });
+  const status = h('div', { class: 'pc-muted pc-doc-status' });
+  const btn = (label, title, onclick, cls = '') =>
+    h('button', { class: `pc-btn ${cls}`.trim(), type: 'button', title, onclick }, label);
   const save = (kind) => {
     try {
       const a = saveArtifact(ctx, kind);
@@ -342,50 +444,89 @@ export function createHandoffPanel(ctx) {
   const copyGuide = async () => {
     try {
       await navigator.clipboard.writeText(buildMarkdown(ctx));
-      status.textContent = "integration guide copied";
+      status.textContent = 'integration guide copied';
     } catch (e) {
       status.textContent = e.message;
     }
   };
 
-  const body = h("div", { class: "pc-handoff" },
-    h("div", { class: "pc-row" },
-      btn("Solve themes", "Solve the palette over every theme", () => ctx.solve(), "pc-primary"),
-      btn("Save CSS", "Custom properties for every theme", () => save("css")),
-      btn("Save tokens", "W3C Design Tokens JSON", () => save("tokens")),
-      btn("Save .pcad", "The sketch (source of truth)", () => save("pcad")),
-      btn("Save guide (.md)", "Integration guide for a human or an agent", () => save("md")),
-      btn("Save harness (.html)", "This page with the sketch and every field embedded", () => save("html")),
-      btn("Copy guide", "Copy the integration guide to the clipboard", copyGuide),
+  const body = h(
+    'div',
+    { class: 'pc-handoff' },
+    h(
+      'div',
+      { class: 'pc-row' },
+      btn('Solve themes', 'Solve the palette over every theme', () => ctx.solve(), 'pc-primary'),
+      btn('Save CSS', 'Custom properties for every theme', () => save('css')),
+      btn('Save tokens', 'W3C Design Tokens JSON', () => save('tokens')),
+      btn('Save .pcad', 'The sketch (source of truth)', () => save('pcad')),
+      btn('Save guide (.md)', 'Integration guide for a human or an agent', () => save('md')),
+      btn('Save harness (.html)', 'This page with the sketch and every field embedded', () =>
+        save('html')
+      ),
+      btn('Copy guide', 'Copy the integration guide to the clipboard', copyGuide)
     ),
     status,
-     section("Project & emitter", true,
-      field("Project", projectIn, "Names the guide and the exported files."),
-      h("div", { class: "pc-row" }, h("label", {}, "Prefix"), prefixIn, h("label", {}, "Format"), formatSel, h("label", { class: "pc-check" }, fallbackChk, "rgb() fallback")),
-      h("div", { class: "pc-row" }, h("label", {}, "Scope"), scopeIn, h("label", {}, "Default"), defaultSel),
-      field("Switching", switchIn, "media → @media (prefers-color-scheme) · attribute → [data-theme] · class → .theme-x"),
+    section(
+      'Project & emitter',
+      true,
+      field('Project', projectIn, 'Names the guide and the exported files.'),
+      h(
+        'div',
+        { class: 'pc-row' },
+        h('label', {}, 'Prefix'),
+        prefixIn,
+        h('label', {}, 'Format'),
+        formatSel,
+        h('label', { class: 'pc-check' }, fallbackChk, 'rgb() fallback')
+      ),
+      h(
+        'div',
+        { class: 'pc-row' },
+        h('label', {}, 'Scope'),
+        scopeIn,
+        h('label', {}, 'Default'),
+        defaultSel
+      ),
+      field(
+        'Switching',
+        switchIn,
+        'media → @media (prefers-color-scheme) · attribute → [data-theme] · class → .theme-x'
+      )
     ),
-     section("Tokens", true, tokensBox),
-     section("Migration guide", true,
-      field("Summary", summaryTa),
-      field("Replacement map", replTa, "One row per (literal, property class): where it occurs and what replaces it."),
-      field("Theme plumbing", plumbTa),
-      field("Alpha, states and derived values", alphaTa),
-      field("Do not tokenise", skipTa),
-      field("Order of work", orderTa),
-      field("Findings and open questions", findTa),
+    section('Tokens', true, tokensBox),
+    section(
+      'Migration guide',
+      true,
+      field('Summary', summaryTa),
+      field(
+        'Replacement map',
+        replTa,
+        'One row per (literal, property class): where it occurs and what replaces it.'
+      ),
+      field('Theme plumbing', plumbTa),
+      field('Alpha, states and derived values', alphaTa),
+      field('Do not tokenise', skipTa),
+      field('Order of work', orderTa),
+      field('Findings and open questions', findTa)
     ),
-     section("Evidence (working notes)", false,
-       h("div", { class: "pc-muted" }, "The analysis behind the sketch (analyze.op.md §2). Travels with the harness and is printed as an appendix of the guide."),
-       field("Colour inventory", inventoryTa),
-       field("Token map", tokenMapTa),
-       field("Relations found", relationsTa),
-       field("Expected solver output", expectedTa),
-     ),
+    section(
+      'Evidence (working notes)',
+      false,
+      h(
+        'div',
+        { class: 'pc-muted' },
+        'The analysis behind the sketch (analyze.op.md §2). Travels with the harness and is printed as an appendix of the guide.'
+      ),
+      field('Colour inventory', inventoryTa),
+      field('Token map', tokenMapTa),
+      field('Relations found', relationsTa),
+      field('Expected solver output', expectedTa)
+    )
   );
-  const el = panelShell("Handoff", body);
-  el.style.width = "440px";
-  el.style.height = "560px";
+  const el = panelShell('Handoff', body);
+  el.style.width = '440px';
+  el.style.height = '560px';
   themeDoc.subscribe(() => {
     if (!el.hidden) update();
   });
@@ -395,34 +536,57 @@ export function createHandoffPanel(ctx) {
     try {
       rows = tokenRows(ctx, d);
     } catch (e) {
-      tokensBox.replaceChildren(h("div", { class: "pc-muted pc-empty" }, e.message));
+      tokensBox.replaceChildren(h('div', { class: 'pc-muted pc-empty' }, e.message));
       return;
     }
     const themes = rows[0]?.values.map((v) => v.theme) ?? [];
     tokensBox.replaceChildren(
-      h("table", { class: "pc-table" },
-        h("thead", {}, h("tr", {}, h("th", {}, "token"), h("th", {}, "custom property"), ...themes.map((t) => h("th", {}, t)))),
-        h("tbody", {}, ...rows.map((row) =>
-          h("tr", { title: `${row.id} · ${row.role}`, onclick: () => ctx.select([row.id]) },
-            h("td", {}, row.token),
-            h("td", {}, h("code", {}, row.property)),
-            ...row.values.map((v) => h("td", { class: "pc-muted" }, v.value)),
-          ))),
-      ),
+      h(
+        'table',
+        { class: 'pc-table' },
+        h(
+          'thead',
+          {},
+          h(
+            'tr',
+            {},
+            h('th', {}, 'token'),
+            h('th', {}, 'custom property'),
+            ...themes.map((t) => h('th', {}, t))
+          )
+        ),
+        h(
+          'tbody',
+          {},
+          ...rows.map((row) =>
+            h(
+              'tr',
+              { title: `${row.id} · ${row.role}`, onclick: () => ctx.select([row.id]) },
+              h('td', {}, row.token),
+              h('td', {}, h('code', {}, row.property)),
+              ...row.values.map((v) => h('td', { class: 'pc-muted' }, v.value))
+            )
+          )
+        )
+      )
     );
-    if (!rows.length) tokensBox.append(h("div", { class: "pc-muted pc-empty" }, "No exported colours yet."));
+    if (!rows.length)
+      tokensBox.append(h('div', { class: 'pc-muted pc-empty' }, 'No exported colours yet.'));
   }
 
   function update() {
     const d = themeDoc.get();
     for (const [key, input] of bound) {
-      if (key === "defaultTheme" || input.matches(":focus")) continue;
-      if (input.type === "checkbox") input.checked = !!d[key];
-      else if (input.value !== String(d[key] ?? "")) input.value = d[key] ?? "";
+      if (key === 'defaultTheme' || input.matches(':focus')) continue;
+      if (input.type === 'checkbox') input.checked = !!d[key];
+      else if (input.value !== String(d[key] ?? '')) input.value = d[key] ?? '';
     }
     const scen = ctx.sketch.scenarios ?? [];
-    defaultSel.replaceChildren(h("option", { value: "" }, "first theme"), ...scen.map((s) => h("option", { value: s.id }, s.id)));
-    defaultSel.value = scen.some((s) => s.id === d.defaultTheme) ? d.defaultTheme : "";
+    defaultSel.replaceChildren(
+      h('option', { value: '' }, 'first theme'),
+      ...scen.map((s) => h('option', { value: s.id }, s.id))
+    );
+    defaultSel.value = scen.some((s) => s.id === d.defaultTheme) ? d.defaultTheme : '';
     renderTokens(d);
   }
 

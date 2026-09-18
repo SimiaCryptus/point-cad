@@ -1,17 +1,23 @@
 // Sketch document: schemas, creation, lookup and editing helpers.
-import { arityText } from "./registry.js";
+import { arityText } from './registry.js';
 
 export const IDENT_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
-export const TARGET_KINDS = ["value", "variable", "minimize", "maximize", "atLeast", "atMost"];
+export const TARGET_KINDS = ['value', 'variable', 'minimize', 'maximize', 'atLeast', 'atMost'];
 
 export function cloneDeep(v) {
-  return typeof structuredClone === "function" ? structuredClone(v) : JSON.parse(JSON.stringify(v));
+  return typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v));
 }
 
 export function defaultView() {
   return {
-    camera: { position: [300, 250, 400], target: [50, 40, 20], up: [0, 0, 1], projection: "perspective", fov: 45 },
-    grid: "xy",
+    camera: {
+      position: [300, 250, 400],
+      target: [50, 40, 20],
+      up: [0, 0, 1],
+      projection: 'perspective',
+      fov: 45,
+    },
+    grid: 'xy',
     showSeeds: true,
     showLabels: true,
     showAxes: true,
@@ -19,7 +25,13 @@ export function defaultView() {
 }
 
 export function defaultSolverSettings() {
-   return { method: "gauss-newton", maxIterations: 200, tolerance: 1e-6, objectiveScale: 0.001, frame: "auto" };
+  return {
+    method: 'gauss-newton',
+    maxIterations: 200,
+    tolerance: 1e-6,
+    objectiveScale: 0.001,
+    frame: 'auto',
+  };
 }
 
 /** Build a normalized sketch document from a partial one. */
@@ -28,18 +40,22 @@ export function createSketch(partial = {}) {
   const view = defaultView();
   const sketch = {
     version: 1,
-    space: src.space ?? "euclidean3",
-    units: { length: "mm", angle: "deg", ...(src.units ?? {}) },
+    space: src.space ?? 'euclidean3',
+    units: { length: 'mm', angle: 'deg', ...(src.units ?? {}) },
     variables: [],
     points: [],
     constraints: [],
     entities: Array.isArray(src.entities) ? src.entities : [],
     macros: Array.isArray(src.macros) ? src.macros : [],
     macroCalls: Array.isArray(src.macroCalls) ? src.macroCalls : [],
-     scenarios: Array.isArray(src.scenarios)
-       ? src.scenarios.map((s) => ({ id: s.id, points: { ...(s.points ?? {}) }, variables: { ...(s.variables ?? {}) } }))
-       : [],
-     extensions: src.extensions && typeof src.extensions === "object" ? src.extensions : {}, // free-form settings bag for extensions
+    scenarios: Array.isArray(src.scenarios)
+      ? src.scenarios.map((s) => ({
+          id: s.id,
+          points: { ...(s.points ?? {}) },
+          variables: { ...(s.variables ?? {}) },
+        }))
+      : [],
+    extensions: src.extensions && typeof src.extensions === 'object' ? src.extensions : {}, // free-form settings bag for extensions
     solver: { ...defaultSolverSettings(), ...(src.solver ?? {}) },
     view: { ...view, ...(src.view ?? {}), camera: { ...view.camera, ...(src.view?.camera ?? {}) } },
   };
@@ -68,7 +84,7 @@ function takenNames(sketch) {
   for (const c of sketch.constraints) taken.add(c.id);
   for (const e of sketch.entities) taken.add(e.id);
   for (const m of sketch.macroCalls) taken.add(m.id);
-   for (const s of sketch.scenarios ?? []) taken.add(s.id);
+  for (const s of sketch.scenarios ?? []) taken.add(s.id);
   return taken;
 }
 
@@ -88,11 +104,17 @@ export function uniqueName(sketch, base) {
 }
 
 export function findPoint(sketch, ref) {
-  return sketch.points.find((p) => p.id === ref) ?? sketch.points.find((p) => p.label === ref) ?? null;
+  return (
+    sketch.points.find((p) => p.id === ref) ?? sketch.points.find((p) => p.label === ref) ?? null
+  );
 }
 
 export function findVariable(sketch, ref) {
-  return sketch.variables.find((v) => v.id === ref) ?? sketch.variables.find((v) => v.name === ref) ?? null;
+  return (
+    sketch.variables.find((v) => v.id === ref) ??
+    sketch.variables.find((v) => v.name === ref) ??
+    null
+  );
 }
 
 export function findConstraint(sketch, ref) {
@@ -103,7 +125,7 @@ export function findMacroCall(sketch, ref) {
   return sketch.macroCalls.find((m) => m.id === ref) ?? null;
 }
 export function findScenario(sketch, ref) {
-   return (sketch.scenarios ?? []).find((s) => s.id === ref) ?? null;
+  return (sketch.scenarios ?? []).find((s) => s.id === ref) ?? null;
 }
 
 export function pointPosition(point) {
@@ -119,8 +141,9 @@ export function sameCoords(a, b) {
 // ---- editing ----------------------------------------------------------
 
 export function addVariable(sketch, spec = {}) {
-  const id = spec.id ?? nextId(sketch, "V");
-  if (findVariable(sketch, id) && sketch.variables.some((v) => v.id === id)) throw new Error(`Duplicate variable id '${id}'`);
+  const id = spec.id ?? nextId(sketch, 'V');
+  if (findVariable(sketch, id) && sketch.variables.some((v) => v.id === id))
+    throw new Error(`Duplicate variable id '${id}'`);
   const v = {
     id,
     name: spec.name ?? id,
@@ -130,13 +153,13 @@ export function addVariable(sketch, spec = {}) {
   };
   if (spec.solved != null) v.solved = spec.solved;
   if (spec.macro) v.macro = spec.macro;
-   if (spec.shared) v.shared = true; // one unknown across all scenarios
+  if (spec.shared) v.shared = true; // one unknown across all scenarios
   sketch.variables.push(v);
   return v;
 }
 
 export function addPoint(sketch, spec = {}) {
-  const id = spec.id ?? nextId(sketch, "P");
+  const id = spec.id ?? nextId(sketch, 'P');
   if (sketch.points.some((p) => p.id === id)) throw new Error(`Duplicate point id '${id}'`);
   const p = {
     id,
@@ -146,40 +169,42 @@ export function addPoint(sketch, spec = {}) {
   };
   if (Array.isArray(spec.solved)) p.solved = spec.solved.slice();
   if (spec.macro) p.macro = spec.macro;
-   if (spec.role) p.role = spec.role; // registry point role (extension-defined preset)
-   if (spec.export === false) p.export = false; // exported unless explicitly hidden
+  if (spec.role) p.role = spec.role; // registry point role (extension-defined preset)
+  if (spec.export === false) p.export = false; // exported unless explicitly hidden
   sketch.points.push(p);
   return p;
 }
 
 export function addConstraint(sketch, spec = {}) {
-  if (typeof spec.type !== "string") throw new Error("Constraint needs a type");
-  if (!Array.isArray(spec.points)) throw new Error(`Constraint '${spec.type}' needs a points array`);
-  const id = spec.id ?? nextId(sketch, "C");
-  if (sketch.constraints.some((c) => c.id === id)) throw new Error(`Duplicate constraint id '${id}'`);
+  if (typeof spec.type !== 'string') throw new Error('Constraint needs a type');
+  if (!Array.isArray(spec.points))
+    throw new Error(`Constraint '${spec.type}' needs a points array`);
+  const id = spec.id ?? nextId(sketch, 'C');
+  if (sketch.constraints.some((c) => c.id === id))
+    throw new Error(`Duplicate constraint id '${id}'`);
   const c = {
     id,
     type: spec.type,
     points: spec.points.slice(),
-    target: spec.target ? { ...spec.target } : { kind: "value", value: 0 },
+    target: spec.target ? { ...spec.target } : { kind: 'value', value: 0 },
     weight: Number.isFinite(spec.weight) ? spec.weight : 1,
     enabled: spec.enabled ?? true,
   };
   if (spec.note) c.note = spec.note;
   if (spec.macro) c.macro = spec.macro;
-   if (spec.params && Object.keys(spec.params).length) c.params = { ...spec.params };
+  if (spec.params && Object.keys(spec.params).length) c.params = { ...spec.params };
   sketch.constraints.push(c);
   return c;
 }
 
 /** Stable structural identity of a constraint (type + ordered points). */
 export function constraintKey(c) {
-  return `${c.type}|${c.points.join(",")}`;
+  return `${c.type}|${c.points.join(',')}`;
 }
 
 /**
-  * Remove a point, variable, constraint, macro instance or scenario by
-  * id/label/name.
+ * Remove a point, variable, constraint, macro instance or scenario by
+ * id/label/name.
  * Removing a point cascades to its constraints; removing a variable freezes
  * dependent targets to its current value. Returns the removed record or null.
  */
@@ -188,29 +213,29 @@ export function removeEntity(sketch, ref) {
   if (p) {
     sketch.points = sketch.points.filter((x) => x !== p);
     sketch.constraints = sketch.constraints.filter((c) => !c.points.includes(p.id));
-     for (const s of sketch.scenarios ?? []) {
-       delete s.points?.[p.id];
-       delete s.points?.[p.label];
-     }
-    return { kind: "point", item: p };
+    for (const s of sketch.scenarios ?? []) {
+      delete s.points?.[p.id];
+      delete s.points?.[p.label];
+    }
+    return { kind: 'point', item: p };
   }
   const v = findVariable(sketch, ref);
   if (v) {
     for (const c of sketch.constraints) {
-       if (c.target?.ref !== v.id) continue;
-       c.target = { kind: c.target.kind === "variable" ? "value" : c.target.kind, value: v.value };
+      if (c.target?.ref !== v.id) continue;
+      c.target = { kind: c.target.kind === 'variable' ? 'value' : c.target.kind, value: v.value };
     }
     sketch.variables = sketch.variables.filter((x) => x !== v);
-     for (const s of sketch.scenarios ?? []) {
-       delete s.variables?.[v.id];
-       delete s.variables?.[v.name];
-     }
-    return { kind: "variable", item: v };
+    for (const s of sketch.scenarios ?? []) {
+      delete s.variables?.[v.id];
+      delete s.variables?.[v.name];
+    }
+    return { kind: 'variable', item: v };
   }
   const c = findConstraint(sketch, ref);
   if (c) {
     sketch.constraints = sketch.constraints.filter((x) => x !== c);
-    return { kind: "constraint", item: c };
+    return { kind: 'constraint', item: c };
   }
   const m = findMacroCall(sketch, ref);
   if (m) {
@@ -218,50 +243,54 @@ export function removeEntity(sketch, ref) {
     sketch.points = sketch.points.filter((x) => x.macro !== m.id);
     sketch.variables = sketch.variables.filter((x) => x.macro !== m.id);
     sketch.constraints = sketch.constraints.filter((x) => x.macro !== m.id);
-    return { kind: "macroCall", item: m };
+    return { kind: 'macroCall', item: m };
   }
-   const s = findScenario(sketch, ref);
-   if (s) {
-     sketch.scenarios = sketch.scenarios.filter((x) => x !== s);
-     return { kind: "scenario", item: s };
-   }
+  const s = findScenario(sketch, ref);
+  if (s) {
+    sketch.scenarios = sketch.scenarios.filter((x) => x !== s);
+    return { kind: 'scenario', item: s };
+  }
   return null;
 }
 // ---- scenarios --------------------------------------------------------
 /**
-  * Define (or replace) a scenario: a named set of overrides on point
-  * positions (`points[idOrLabel] = coords`) and variable values
-  * (`variables[idOrName] = number`) that a stacked solve applies per block.
-  */
+ * Define (or replace) a scenario: a named set of overrides on point
+ * positions (`points[idOrLabel] = coords`) and variable values
+ * (`variables[idOrName] = number`) that a stacked solve applies per block.
+ */
 export function defineScenario(sketch, spec = {}) {
-   if (typeof spec.id !== "string" || !spec.id) throw new Error("Scenario needs an id");
-   const record = { id: spec.id, points: { ...(spec.points ?? {}) }, variables: { ...(spec.variables ?? {}) } };
-   if (!Array.isArray(sketch.scenarios)) sketch.scenarios = [];
-   const i = sketch.scenarios.findIndex((s) => s.id === spec.id);
-   if (i >= 0) sketch.scenarios[i] = record;
-   else sketch.scenarios.push(record);
-   return record;
+  if (typeof spec.id !== 'string' || !spec.id) throw new Error('Scenario needs an id');
+  const record = {
+    id: spec.id,
+    points: { ...(spec.points ?? {}) },
+    variables: { ...(spec.variables ?? {}) },
+  };
+  if (!Array.isArray(sketch.scenarios)) sketch.scenarios = [];
+  const i = sketch.scenarios.findIndex((s) => s.id === spec.id);
+  if (i >= 0) sketch.scenarios[i] = record;
+  else sketch.scenarios.push(record);
+  return record;
 }
 /** Clone a sketch with a scenario's overrides written into seeds and values. */
 export function applyScenario(sketch, scenario) {
-   const out = cloneSketch(sketch);
-   const s = typeof scenario === "string" ? findScenario(out, scenario) : scenario;
-   if (!s) throw new Error(`Unknown scenario '${scenario}'`);
-   for (const [ref, coords] of Object.entries(s.points ?? {})) {
-     const p = findPoint(out, ref);
-     if (p) {
-       p.seed = coords.map(Number);
-       delete p.solved;
-     }
-   }
-   for (const [ref, value] of Object.entries(s.variables ?? {})) {
-     const v = findVariable(out, ref);
-     if (v) {
-       v.value = Number(value);
-       delete v.solved;
-     }
-   }
-   return out;
+  const out = cloneSketch(sketch);
+  const s = typeof scenario === 'string' ? findScenario(out, scenario) : scenario;
+  if (!s) throw new Error(`Unknown scenario '${scenario}'`);
+  for (const [ref, coords] of Object.entries(s.points ?? {})) {
+    const p = findPoint(out, ref);
+    if (p) {
+      p.seed = coords.map(Number);
+      delete p.solved;
+    }
+  }
+  for (const [ref, value] of Object.entries(s.variables ?? {})) {
+    const v = findVariable(out, ref);
+    if (v) {
+      v.value = Number(value);
+      delete v.solved;
+    }
+  }
+  return out;
 }
 
 export function setVariable(sketch, ref, value) {
@@ -305,7 +334,7 @@ export function adoptSolution(sketch) {
 export function validateSketch(sketch, registry) {
   const errors = [];
   const err = (path, message) => errors.push({ path, message });
-  if (!registry.hasSpace(sketch.space)) err("space", `Unknown space '${sketch.space}'`);
+  if (!registry.hasSpace(sketch.space)) err('space', `Unknown space '${sketch.space}'`);
   const dim = registry.hasSpace(sketch.space) ? registry.getSpace(sketch.space).dim : null;
 
   const ids = new Set();
@@ -315,38 +344,52 @@ export function validateSketch(sketch, registry) {
   };
   sketch.variables.forEach((v, i) => {
     dup(v.id, `variables[${i}]`);
-    if (!Number.isFinite(v.value)) err(`variables[${i}].value`, "Value must be a finite number");
+    if (!Number.isFinite(v.value)) err(`variables[${i}].value`, 'Value must be a finite number');
   });
   sketch.points.forEach((p, i) => {
     dup(p.id, `points[${i}]`);
-    if (!Array.isArray(p.seed) || (dim && p.seed.length !== dim)) err(`points[${i}].seed`, `Seed must have ${dim} coordinates`);
-    else if (p.seed.some((x) => !Number.isFinite(x))) err(`points[${i}].seed`, "Seed coordinates must be finite");
+    if (!Array.isArray(p.seed) || (dim && p.seed.length !== dim))
+      err(`points[${i}].seed`, `Seed must have ${dim} coordinates`);
+    else if (p.seed.some((x) => !Number.isFinite(x)))
+      err(`points[${i}].seed`, 'Seed coordinates must be finite');
   });
   sketch.constraints.forEach((c, i) => {
     dup(c.id, `constraints[${i}]`);
-    if (!registry.hasConstraintKind(c.type)) return err(`constraints[${i}].type`, `Unknown constraint kind '${c.type}'`);
+    if (!registry.hasConstraintKind(c.type))
+      return err(`constraints[${i}].type`, `Unknown constraint kind '${c.type}'`);
     const kind = registry.getConstraintKind(c.type);
-    if (!registry.kindSupportsSpace(kind, sketch.space)) err(`constraints[${i}].type`, `'${c.type}' is not available in space '${sketch.space}'`);
-     if (!registry.kindAccepts(kind, c.points.length)) err(`constraints[${i}].points`, `'${c.type}' needs ${arityText(kind)} points`);
-    for (const id of c.points) if (!sketch.points.some((p) => p.id === id)) err(`constraints[${i}].points`, `Unknown point '${id}'`);
-     for (const prm of kind.params ?? []) {
-       if (c.params?.[prm.name] === undefined) err(`constraints[${i}].params`, `'${c.type}' needs parameter '${prm.name}'`);
-       else if (Array.isArray(prm.values) && !prm.values.includes(c.params[prm.name])) err(`constraints[${i}].params`, `'${prm.name}' must be one of ${prm.values.join(", ")}`);
-     }
-     const t = c.target ?? kind.defaultTarget ?? { kind: "value", value: 0 };
-     if (!TARGET_KINDS.includes(t.kind)) err(`constraints[${i}].target`, `Unknown target kind '${t.kind}'`);
-     if ((t.kind === "variable" || t.ref != null) && !sketch.variables.some((v) => v.id === t.ref)) err(`constraints[${i}].target`, `Unknown variable '${t.ref}'`);
-   });
-   (sketch.scenarios ?? []).forEach((s, i) => {
-     if (typeof s.id !== "string" || !IDENT_RE.test(s.id)) err(`scenarios[${i}].id`, "Scenario id must be an identifier");
-     for (const [ref, coords] of Object.entries(s.points ?? {})) {
-       if (!findPoint(sketch, ref)) err(`scenarios[${i}].points`, `Unknown point '${ref}'`);
-       if (!Array.isArray(coords) || (dim && coords.length !== dim)) err(`scenarios[${i}].points.${ref}`, `Override must have ${dim} coordinates`);
-     }
-     for (const [ref, value] of Object.entries(s.variables ?? {})) {
-       if (!findVariable(sketch, ref)) err(`scenarios[${i}].variables`, `Unknown variable '${ref}'`);
-       if (!Number.isFinite(Number(value))) err(`scenarios[${i}].variables.${ref}`, "Value must be a finite number");
-     }
+    if (!registry.kindSupportsSpace(kind, sketch.space))
+      err(`constraints[${i}].type`, `'${c.type}' is not available in space '${sketch.space}'`);
+    if (!registry.kindAccepts(kind, c.points.length))
+      err(`constraints[${i}].points`, `'${c.type}' needs ${arityText(kind)} points`);
+    for (const id of c.points)
+      if (!sketch.points.some((p) => p.id === id))
+        err(`constraints[${i}].points`, `Unknown point '${id}'`);
+    for (const prm of kind.params ?? []) {
+      if (c.params?.[prm.name] === undefined)
+        err(`constraints[${i}].params`, `'${c.type}' needs parameter '${prm.name}'`);
+      else if (Array.isArray(prm.values) && !prm.values.includes(c.params[prm.name]))
+        err(`constraints[${i}].params`, `'${prm.name}' must be one of ${prm.values.join(', ')}`);
+    }
+    const t = c.target ?? kind.defaultTarget ?? { kind: 'value', value: 0 };
+    if (!TARGET_KINDS.includes(t.kind))
+      err(`constraints[${i}].target`, `Unknown target kind '${t.kind}'`);
+    if ((t.kind === 'variable' || t.ref != null) && !sketch.variables.some((v) => v.id === t.ref))
+      err(`constraints[${i}].target`, `Unknown variable '${t.ref}'`);
+  });
+  (sketch.scenarios ?? []).forEach((s, i) => {
+    if (typeof s.id !== 'string' || !IDENT_RE.test(s.id))
+      err(`scenarios[${i}].id`, 'Scenario id must be an identifier');
+    for (const [ref, coords] of Object.entries(s.points ?? {})) {
+      if (!findPoint(sketch, ref)) err(`scenarios[${i}].points`, `Unknown point '${ref}'`);
+      if (!Array.isArray(coords) || (dim && coords.length !== dim))
+        err(`scenarios[${i}].points.${ref}`, `Override must have ${dim} coordinates`);
+    }
+    for (const [ref, value] of Object.entries(s.variables ?? {})) {
+      if (!findVariable(sketch, ref)) err(`scenarios[${i}].variables`, `Unknown variable '${ref}'`);
+      if (!Number.isFinite(Number(value)))
+        err(`scenarios[${i}].variables.${ref}`, 'Value must be a finite number');
+    }
   });
   return errors;
 }
@@ -354,9 +397,11 @@ export function validateSketch(sketch, registry) {
 // ---- built-in entity kind ---------------------------------------------
 
 export const pointEntityKind = {
-  id: "point",
-  schema: { id: "string", label: "string", seed: "number[dim]", fixed: "boolean" },
+  id: 'point',
+  schema: { id: 'string', label: 'string', seed: 'number[dim]', fixed: 'boolean' },
   unknowns(entity, space) {
-    return entity.fixed ? [] : Array.from({ length: space.dim }, (_, k) => ({ entity: entity.id, index: k }));
+    return entity.fixed
+      ? []
+      : Array.from({ length: space.dim }, (_, k) => ({ entity: entity.id, index: k }));
   },
 };

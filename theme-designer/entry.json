@@ -1,10 +1,12 @@
 {
   "id": "theme-cad",
-  "category": "lab",
-  "section": "featured",
-  "icon": "TC",
   "title": "Theme CAD",
+  "category": "lab",
   "href": "index.html",
   "readme": "README.md",
+  "order": 6,
+  "section": "featured",
+  "icon": "TC",
+  "video": "/videos/demo_themecad.mp4",
   "pitch": "A theme designer for PointCAD, allowing you to create and customize themes for your CAD projects."
 }

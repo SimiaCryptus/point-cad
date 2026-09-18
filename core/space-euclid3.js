@@ -5,10 +5,18 @@ const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const scale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const cross = (a, b) => [
+  a[1] * b[2] - a[2] * b[1],
+  a[2] * b[0] - a[0] * b[2],
+  a[0] * b[1] - a[1] * b[0],
+];
 const norm = (a) => Math.sqrt(dot(a, a));
 const RAD2DEG = 180 / Math.PI;
-const WORLD = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+const WORLD = [
+  [1, 0, 0],
+  [0, 1, 0],
+  [0, 0, 1],
+];
 
 /** Unit vector of `v` with its component along unit `n` removed (null if degenerate). */
 const orthTo = (v, n) => {
@@ -26,7 +34,11 @@ function eigenSym3(A) {
   const v = [1, 0, 0, 0, 1, 0, 0, 0, 1];
   for (let sweep = 0; sweep < 60; sweep++) {
     if (a[1] * a[1] + a[2] * a[2] + a[5] * a[5] < 1e-24) break;
-    for (const [p, q] of [[0, 1], [0, 2], [1, 2]]) {
+    for (const [p, q] of [
+      [0, 1],
+      [0, 2],
+      [1, 2],
+    ]) {
       const apq = a[p * 3 + q];
       if (Math.abs(apq) < 1e-300) continue;
       const theta = (a[q * 3 + q] - a[p * 3 + p]) / (2 * apq);
@@ -97,8 +109,8 @@ function principalAxes(coords, centroid) {
 }
 
 export const euclidean3 = {
-  id: "euclidean3",
-  name: "Euclidean ℝ³",
+  id: 'euclidean3',
+  name: 'Euclidean ℝ³',
   dim: 3,
 
   /** Geodesic (straight-line) distance. */
