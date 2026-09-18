@@ -1,12 +1,20 @@
 {
-  "id": "theme-cad",
-  "title": "Theme CAD",
-  "category": "lab",
-  "href": "index.html",
-  "readme": "README.md",
-  "order": 6,
-  "section": "featured",
-  "icon": "TC",
-  "video": "/videos/demo_themecad.mp4",
-  "pitch": "A theme designer for PointCAD, allowing you to create and customize themes for your CAD projects."
+    "id": "theme-cad",
+    "title": "Theme CAD",
+    "description": "A theme designer for PointCAD, allowing you to create and customize themes for your CAD projects.",
+    "tags": [
+        "point-cad",
+        "color",
+        "constraints",
+        "design-tokens",
+        "accessibility",
+        "oklab"
+    ],
+    "category": "labs",
+    "href": "index.html",
+    "readme": "README.md",
+    "video": "/videos/demo_themecad.mp4",
+    "order": 6,
+    "section": "featured",
+    "icon": "TC"
 }
