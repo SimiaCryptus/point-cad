@@ -65,7 +65,7 @@ well beyond colors:
 ## 3. Mapping the Domain onto Point-CAD
 
 | Point-CAD concept    | Theme designer meaning                                                    |
-| -------------------- | ------------------------------------------------------------------------- |
+|----------------------|---------------------------------------------------------------------------|
 | sketch document      | a **palette model**: colors + rules + themes                              |
 | space                | a **color space** (`oklab`, `cielab`, …)                                  |
 | point                | a **color**; coordinates are `[L, a, b]`                                  |
@@ -235,7 +235,7 @@ same hue, chroma stepped by a fixed amount. That is not a geodesic distance
 its own measures.
 
 | kind | arity | measure                                          | notes                   |
-| ---- | ----- | ------------------------------------------------ | ----------------------- |
+|------|-------|--------------------------------------------------|-------------------------|
 | `dL` | 2     | `L(B) − L(A)`                                    | signed                  |
 | `dC` | 2     | `C(B) − C(A)`                                    | signed                  |
 | `dH` | 2     | shortest signed hue arc from `A` to `B`, degrees | in `(−180, 180]`        |
@@ -268,7 +268,7 @@ with `stepL` negative in dark mode reverses a ramp.
 ### 5.2 Contrast
 
 | kind       | arity | measure                                               | requires       |
-| ---------- | ----- | ----------------------------------------------------- | -------------- |
+|------------|-------|-------------------------------------------------------|----------------|
 | `contrast` | 2     | WCAG 2.x ratio `(Y_hi + 0.05) / (Y_lo + 0.05)`, `≥ 1` | `toLinearSRGB` |
 | `apca`     | 2     | APCA `Lc` of `(text, background)`, signed             | `toLinearSRGB` |
 
@@ -297,7 +297,7 @@ panel flags any constraint sitting within ε of a kink.
 ### 5.3 Gamut
 
 | kind    | arity | measure                                                    | requires       |
-| ------- | ----- | ---------------------------------------------------------- | -------------- |
+|---------|-------|------------------------------------------------------------|----------------|
 | `gamut` | 1     | `max(0, max_i(rgb_i − 1), max_i(−rgb_i))` over linear sRGB | `toLinearSRGB` |
 
 Zero inside the gamut, positive outside, growing linearly with the excess.
@@ -403,7 +403,7 @@ every measure kind.
 Contrast and gamut rules are one-sided. Add two target kinds:
 
 | kind      | meaning                      | residual                   |
-| --------- | ---------------------------- | -------------------------- |
+|-----------|------------------------------|----------------------------|
 | `atLeast` | `measure ≥ value / variable` | `max(0, target − measure)` |
 | `atMost`  | `measure ≤ value / variable` | `max(0, measure − target)` |
 
@@ -702,7 +702,7 @@ public element API.
 ### 11.1 Extension roadmap
 
 | phase | additions                                                                                            |
-| ----- | ---------------------------------------------------------------------------------------------------- |
+|-------|------------------------------------------------------------------------------------------------------|
 | t1    | `oklab` space, axis measures + `lock`, `contrast`, `gamut`, themes/scenarios, CSS emit, swatch board |
 | t1.1  | `apca`, `cielab`, tokens emit, contrast matrix, Lab-cube gamut hull                                  |
 | t2    | recipes library (`ramp`, `analogous`, `triadic`, state sets), Display-P3 gamut, CVD-distance measure |

@@ -42,7 +42,7 @@ enough that a designer understands _why_ each rule exists. §3 defines every fie
 short form of where each one surfaces:
 
 | document field (§3)                                                              | in the UI                                | in the generated guide               |
-| -------------------------------------------------------------------------------- | ---------------------------------------- | ------------------------------------ |
+|----------------------------------------------------------------------------------|------------------------------------------|--------------------------------------|
 | `pcad` (top level, beside `doc`)                                                 | **Script** window                        | §11, and _Save .pcad_                |
 | `project`, `prefix`, `format`, `scope`, `switchMode`, `defaultTheme`, `fallback` | **Handoff › Project & emitter**          | title, file names, _At a glance_, §3 |
 | `summary`                                                                        | **Handoff › Migration guide › Summary**  | §1                                   |
@@ -91,7 +91,7 @@ go — they are markdown — and assemble the file in §2.11.
 Scan every matched file. Extract each colour literal together with its context:
 
 | record          | contents                                                                                                                                                        |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `literal`       | the text as written (`#3b5bdb`, `rgb(59 91 219)`, `hsl(…)`, `oklch(…)`, `rebeccapurple`, …)                                                                     |
 | `file:line`     | location (all occurrences)                                                                                                                                      |
 | `selector`      | the rule's selector, with pseudo-classes (`a:hover`, `.btn:disabled`)                                                                                           |
@@ -145,7 +145,7 @@ emitter and the sample stylesheet already use; extend it (`danger`, `success`, `
 `info`, `focusRing`, `selection`, `codeBg`, …) rather than inventing synonyms.
 
 | token         | typical evidence                                                           | usual role  |
-| ------------- | -------------------------------------------------------------------------- | ----------- |
+|---------------|----------------------------------------------------------------------------|-------------|
 | `canvas`      | `background` of `html`/`body`; the most common background                  | anchor      |
 | `brand`       | primary button background, logo colour, the hue links share                | anchor      |
 | `surface1..n` | container backgrounds that differ from `canvas` mostly in `L`              | derived     |
@@ -179,7 +179,7 @@ rule only if it holds within tolerance **in every theme found** (or is an access
 floor). Record the numbers in the document.
 
 | relation                         | how to detect                                                     | tolerance              | PCS                                              |
-| -------------------------------- | ----------------------------------------------------------------- | ---------------------- | ------------------------------------------------ |
+|----------------------------------|-------------------------------------------------------------------|------------------------|--------------------------------------------------|
 | even lightness ramp              | successive `dL` between `canvas, surface1, surface2, …` are equal | ±0.01 in `L`           | `dL A B = stepL` per step, `stepL` a variable    |
 | hue family                       | hue angles within a small arc                                     | ±5° (±10° if `C<0.05`) | `lock H ref A B C`                               |
 | equal chroma                     | `C` values equal                                                  | ±0.005                 | `lock C ref A B`                                 |
@@ -633,7 +633,7 @@ a {
 `replacements` excerpt for the same example:
 
 | literal           | where                  | property   | token       | replacement                         |
-| ----------------- | ---------------------- | ---------- | ----------- | ----------------------------------- |
+|-------------------|------------------------|------------|-------------|-------------------------------------|
 | `#fdfcf9`         | app.css ×1             | background | `canvas`    | `background: var(--color-canvas)`   |
 | `#222`            | app.css ×7             | color      | `text`      | `color: var(--color-text)`          |
 | `#666`            | app.css ×3             | color      | `textMuted` | `color: var(--color-text-muted)`    |
@@ -674,18 +674,18 @@ a {
 
 - [ ] The sketch parses and solves (`converged=true`, `0 unmet` per theme, or unmet
 - [ ] `index.html` opens in a browser: the `theme-doc` block is valid JSON, the
-      log says `loaded embedded sketch`, and no `src=` fetch error appears.
+  log says `loaded embedded sketch`, and no `src=` fetch error appears.
 - [ ] Every colour literal in the matched CSS appears in `inventory`, and every cluster
-      is either a token in `tokenMap` or explained in `findings`.
-      constraints explained).
+  is either a token in `tokenMap` or explained in `findings`.
+  constraints explained).
 - [ ] Every exported token is seeded with an observed value (light) and, for dark, either
-      observed or seeded on the correct side of the canvas.
+  observed or seeded on the correct side of the canvas.
 - [ ] Every text/background pair that occurs in the CSS has a `contrast` floor.
 - [ ] Every rule in the sketch has evidence or a stated design decision in §3.4.
 - [ ] Every derived point is determined on all three axes, or its slack is listed.
 - [ ] The demo CSS references only tokens that exist and uses each exported token once.
 - [ ] The migration table covers every occurrence in the inventory, including deletions
-      of redundant per-theme overrides.
+  of redundant per-theme overrides.
 - [ ] Proposed (not found) themes and all accessibility failures are listed as findings.
 
 ### 2.11 Write the harness

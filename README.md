@@ -60,8 +60,28 @@ Named scalar parameters (typically lengths or angles) that constraints can
 reference.
 
 ```js
-{ id: "L1", name: "beamLength", value: 120, unit: "mm", locked: true }
-{ id: "A1", name: "theta",      value: 30,  unit: "deg", locked: false }
+{
+    id: "L1", name
+:
+    "beamLength", value
+:
+    120, unit
+:
+    "mm", locked
+:
+    true
+}
+{
+    id: "A1", name
+:
+    "theta", value
+:
+    30, unit
+:
+    "deg", locked
+:
+    false
+}
 ```
 
 - `locked: true` → the solver treats the value as a fixed input.
@@ -77,9 +97,33 @@ Labeled points in 3D with a **seed position**. The seed is the solver's
 starting guess and is also what the user sees before solving.
 
 ```js
-{ id: "P1", label: "A", seed: [0,   0,  0],  fixed: true  }
-{ id: "P2", label: "B", seed: [100, 0,  0],  fixed: false }
-{ id: "P3", label: "C", seed: [100, 80, 40], fixed: false }
+{
+    id: "P1", label
+:
+    "A", seed
+:
+    [0, 0, 0], fixed
+:
+    true
+}
+{
+    id: "P2", label
+:
+    "B", seed
+:
+    [100, 0, 0], fixed
+:
+    false
+}
+{
+    id: "P3", label
+:
+    "C", seed
+:
+    [100, 80, 40], fixed
+:
+    false
+}
 ```
 
 - `fixed: true` → the point is an anchor and is never moved by the solver.
@@ -97,10 +141,54 @@ entities it constrains, and a `target` describing what it wants.
 #### 3.3.1 Two-point distance
 
 ```js
-{ id: "C1", type: "distance", points: ["P1", "P2"], target: { kind: "value",    value: 100 } }
-{ id: "C2", type: "distance", points: ["P2", "P3"], target: { kind: "variable", ref: "L1" } }
-{ id: "C3", type: "distance", points: ["P1", "P3"], target: { kind: "minimize" } }
-{ id: "C4", type: "distance", points: ["P1", "P4"], target: { kind: "maximize" } }
+{
+    id: "C1", type
+:
+    "distance", points
+:
+    ["P1", "P2"], target
+:
+    {
+        kind: "value", value
+    :
+        100
+    }
+}
+{
+    id: "C2", type
+:
+    "distance", points
+:
+    ["P2", "P3"], target
+:
+    {
+        kind: "variable", ref
+    :
+        "L1"
+    }
+}
+{
+    id: "C3", type
+:
+    "distance", points
+:
+    ["P1", "P3"], target
+:
+    {
+        kind: "minimize"
+    }
+}
+{
+    id: "C4", type
+:
+    "distance", points
+:
+    ["P1", "P4"], target
+:
+    {
+        kind: "maximize"
+    }
+}
 ```
 
 #### 3.3.2 Interior angle of a point triplet
@@ -111,15 +199,49 @@ three non-coincident points in 3D; no projection or "up" direction is
 involved.
 
 ```js
-{ id: "C5", type: "angle", points: ["P1", "P2", "P3"], target: { kind: "value",    value: 90 } }
-{ id: "C6", type: "angle", points: ["P2", "P3", "P4"], target: { kind: "variable", ref: "A1" } }
-{ id: "C7", type: "angle", points: ["P3", "P4", "P1"], target: { kind: "minimize" } }
+{
+    id: "C5", type
+:
+    "angle", points
+:
+    ["P1", "P2", "P3"], target
+:
+    {
+        kind: "value", value
+    :
+        90
+    }
+}
+{
+    id: "C6", type
+:
+    "angle", points
+:
+    ["P2", "P3", "P4"], target
+:
+    {
+        kind: "variable", ref
+    :
+        "A1"
+    }
+}
+{
+    id: "C7", type
+:
+    "angle", points
+:
+    ["P3", "P4", "P1"], target
+:
+    {
+        kind: "minimize"
+    }
+}
 ```
 
 #### 3.3.3 Target kinds (shared by all constraint types)
 
 | kind       | meaning                                                         |
-| ---------- | --------------------------------------------------------------- |
+|------------|-----------------------------------------------------------------|
 | `value`    | equal a literal number                                          |
 | `variable` | equal a named variable (locked or free)                         |
 | `minimize` | objective term: make the measured quantity as small as possible |
@@ -135,7 +257,13 @@ least-squares / gradient problem.
 Every constraint also carries:
 
 ```js
-{ weight: 1.0, enabled: true, note: "roof pitch" }
+{
+    weight: 1.0, enabled
+:
+    true, note
+:
+    "roof pitch"
+}
 ```
 
 ### 3.4 Sketch document
@@ -145,20 +273,63 @@ script format in §7 map onto it 1:1):
 
 ```js
 {
-  version: 1,
-  space: "euclidean3",                      // see §6
-  units: { length: "mm", angle: "deg" },
-  variables: [...],
-  points: [...],
-  constraints: [...],
-  entities: [...],       // reserved for extensions: areas, curves, volumes
-  macros: [...],         // user-defined script macros (§7.4), kept so files round-trip
-  solver: { method: "gauss-newton", maxIterations: 200, tolerance: 1e-6 },
-  view: {
-    camera: { position: [300, 250, 400], target: [50, 40, 20], up: [0, 0, 1],
-              projection: "perspective", fov: 45 },
-    grid: "xy", showSeeds: true, showLabels: true, showAxes: true
-  }
+    version: 1,
+        space
+:
+    "euclidean3",                      // see §6
+        units
+:
+    {
+        length: "mm", angle
+    :
+        "deg"
+    }
+,
+    variables: [...],
+        points
+:
+    [...],
+        constraints
+:
+    [...],
+        entities
+:
+    [...],       // reserved for extensions: areas, curves, volumes
+        macros
+:
+    [...],         // user-defined script macros (§7.4), kept so files round-trip
+        solver
+:
+    {
+        method: "gauss-newton", maxIterations
+    :
+        200, tolerance
+    :
+        1e-6
+    }
+,
+    view: {
+        camera: {
+            position: [300, 250, 400], target
+        :
+            [50, 40, 20], up
+        :
+            [0, 0, 1],
+                projection
+        :
+            "perspective", fov
+        :
+            45
+        }
+    ,
+        grid: "xy", showSeeds
+    :
+        true, showLabels
+    :
+        true, showAxes
+    :
+        true
+    }
 }
 ```
 
@@ -172,7 +343,7 @@ relations, and the microlanguage's macros (§7.4) let users package these
 recipes under friendly names without the core learning any new geometry.
 
 | relation                | construction with fundamentals                                                        |
-| ----------------------- | ------------------------------------------------------------------------------------- |
+|-------------------------|---------------------------------------------------------------------------------------|
 | perpendicular `AB ⊥ BC` | `angle A B C = 90`                                                                    |
 | collinear, `B` between  | `angle A B C = 180` (`= 0` for `B` outside the segment)                               |
 | equal lengths           | both distances target the **same** variable (locked or free)                          |
@@ -278,9 +449,16 @@ The solver returns per-constraint residuals so the UI can:
 ### 5.4 Solver interface (pluggable)
 
 ```js
-export interface Solver {
-  id: string;
-  solve(problem: Problem, options): SolveResult;
+export
+interface
+Solver
+{
+    id: string;
+    solve(problem
+:
+    Problem, options
+):
+    SolveResult;
 }
 ```
 
@@ -296,15 +474,28 @@ through a registered **space**, and v1 registers exactly one:
 
 ```js
 registry.registerSpace({
-  id: "euclidean3",
-  dim: 3,                                  // length of a coordinate array
-  distance(p, q) => number,                // geodesic distance
-  angle(p, q, r) => number,                // angle at q between geodesics q→p, q→r
-  interpolate(p, q, t) => coords,          // point along the geodesic (for glyphs)
-  normalize(coords) => coords,             // identity here; gauge fixing elsewhere
-  toDisplay(coords) => [x, y, z],          // chart into the renderer's ℝ³
-  fromDisplay([x, y, z]) => coords,        // inverse, for dragging
-});
+    id: "euclidean3",
+    dim: 3,                                  // length of a coordinate array
+    distance(p, q)
+=>
+number,                // geodesic distance
+    angle(p, q, r)
+=>
+number,                // angle at q between geodesics q→p, q→r
+    interpolate(p, q, t)
+=>
+coords,          // point along the geodesic (for glyphs)
+    normalize(coords)
+=>
+coords,             // identity here; gauge fixing elsewhere
+    toDisplay(coords)
+=>
+[x, y, z],          // chart into the renderer's ℝ³
+    fromDisplay([x, y, z])
+=>
+coords,        // inverse, for dragging
+})
+;
 ```
 
 Rules the core follows so that other spaces can slot in later:
@@ -475,21 +666,34 @@ point-cad/
 registry.registerSpace(euclidean3);        // see §6
 
 registry.registerEntityKind({
-  id: "point",
-  schema,                        // validation
-  unknowns(entity, space) => [...],  // which numbers the solver may move
-  render(entity, ctx) => ...     // optional viewport glyph
-});
+    id: "point",
+    schema,                        // validation
+    unknowns(entity, space)
+=>
+[...],  // which numbers the solver may move
+    render(entity, ctx)
+=> ...     // optional viewport glyph
+})
+;
 
 registry.registerConstraintKind({
-  id: "distance",
-  arity: { points: 2 },
-  spaces: "*",                   // or ["euclidean3"] for Euclidean-only kinds
-  measure(entities, space) => number,   // scalar the constraint acts on
-  syntax: "distance <A> <B>",    // how it appears in PCS; parser derives arity
-  form: DistanceForm,            // optional UI editor component
-  glyph: DistanceGlyph           // optional viewport glyph
-});
+    id: "distance",
+    arity: {points: 2},
+    spaces: "*",                   // or ["euclidean3"] for Euclidean-only kinds
+    measure(entities, space)
+=>
+number,   // scalar the constraint acts on
+    syntax
+:
+"distance <A> <B>",    // how it appears in PCS; parser derives arity
+    form
+:
+DistanceForm,            // optional UI editor component
+    glyph
+:
+DistanceGlyph           // optional viewport glyph
+})
+;
 
 registry.registerSolver(gaussNewtonSolver);
 ```
@@ -516,13 +720,14 @@ react without touching internals:
 ### 9.1 Custom element
 
 ```html
+
 <script type="module" src="./point-cad/index.js"></script>
 
 <point-cad
-  src="./truss.pcad"
-  readonly="false"
-  panels="variables,points,constraints,script,solve"
-  theme="light"
+        src="./truss.pcad"
+        readonly="false"
+        panels="variables,points,constraints,script,solve"
+        theme="light"
 >
 </point-cad>
 ```
@@ -533,10 +738,10 @@ detected by extension, then by sniffing.
 ### 9.2 Programmatic
 
 ```js
-import { PointCad, createSketch } from "./point-cad/index.js";
+import {PointCad, createSketch} from "./point-cad/index.js";
 
 const el = document.querySelector("point-cad");
-el.sketch = createSketch({ variables: [...], points: [...], constraints: [...] });
+el.sketch = createSketch({variables: [...], points: [...], constraints: [...]});
 
 el.addEventListener("pointcad:solve", e => console.log(e.detail.result));
 
@@ -545,7 +750,7 @@ el.exec(`
   distance A E = 130
 `);                                 // construct the world from text
 const result = el.solve();          // imperative solve
-const json   = el.toJSON();         // export (canonical model)
+const json = el.toJSON();         // export (canonical model)
 const script = el.toScript();       // export (human-readable .pcad)
 el.fromJSON(json);                  // import
 el.fromScript(script);              // import
@@ -554,12 +759,12 @@ el.fromScript(script);              // import
 ### 9.3 Headless
 
 ```js
-import { buildProblem, solvers } from './point-cad/core/index.js';
-import { parse, emit } from './point-cad/lang/index.js';
+import {buildProblem, solvers} from './point-cad/core/index.js';
+import {parse, emit} from './point-cad/lang/index.js';
 
 const sketch = parse(await fs.readFile('truss.pcad', 'utf8'));
 const result = solvers.gaussNewton.solve(buildProblem(sketch));
-await fs.writeFile('truss.solved.pcad', emit(sketch, { adoptSolution: true }));
+await fs.writeFile('truss.solved.pcad', emit(sketch, {adoptSolution: true}));
 ```
 
 Useful for server-side validation, tests, or hosts with their own renderer.
@@ -593,7 +798,7 @@ Useful for server-side validation, tests, or hosts with their own renderer.
 ## 11. Extension Roadmap
 
 | phase | additions                                                                                                                           |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------------- |
+|-------|-------------------------------------------------------------------------------------------------------------------------------------|
 | v1    | 3D points, variables, distance & angle constraints, GN solver, Euclidean space, JSON + PCS I/O, macros                              |
 | v1.1  | equality-between-variables, variable expressions (`L1 * 2`), native `parallel` / `coplanar` / `onPlane` kinds graduated from macros |
 | v2    | `area` entity (polygon of points) + area constraints; `volume` entity (tetra / polyhedron) + volume constraints                     |

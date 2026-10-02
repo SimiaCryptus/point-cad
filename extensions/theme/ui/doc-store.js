@@ -30,86 +30,122 @@ a { color: var(--color-link, #36c); }
 
 /** Every field the harness carries. Prose fields are markdown. */
 export const DEFAULT_DOC = {
-  project: 'My app',
-  // emitter options (see emit-css.js)
-  prefix: 'color-',
-  format: 'oklch',
-  scope: ':root',
-  switchMode: 'media,attribute',
-  defaultTheme: '',
-  fallback: false,
-  // migration guide
-  summary: '',
-  replacements:
-    '| literal | where | property | token | replacement |\n' + '|---|---|---|---|---|\n',
-  plumbing:
-    '1. Load the generated stylesheet **first**, before any other CSS.\n' +
-    '2. Keep the emitted `:root` block as the default theme.\n' +
-    '3. Opt-in switching is `[data-theme="…"]` on `<html>`.\n' +
-    '4. Add `color-scheme: light dark` to `:root` so form controls and scrollbars follow.',
-  alpha:
-    'Translucent uses of a token become `color-mix(in oklab, var(--color-X) 40%, transparent)`.\n' +
-    'One-off shades can use relative colour syntax: `oklch(from var(--color-X) calc(l - 0.06) c h)`.\n' +
-    'Shadows and scrims stay literal.',
-  skip:
-    '`currentColor`, `transparent`, pure black shadows/scrims, white hairlines (use `color-mix` from the text token), ' +
-    'and any third-party component you do not own.',
-  order:
-    'Replace literals → delete redundant per-theme overrides → add `color-scheme` → states → remove fallbacks.',
-  findings: '',
-  // evidence / working notes (analyze.op.md §2): stored so the harness is
-  // self-contained; printed as an appendix of the generated guide
-  inventory: '',
-  tokenMap: '',
-  relations: '',
-  expected: '',
-  preview: { html: DEFAULT_PREVIEW_HTML, css: DEFAULT_PREVIEW_CSS },
+    project: 'My app',
+    // emitter options (see emit-css.js)
+    prefix: 'color-',
+    format: 'oklch',
+    scope: ':root',
+    switchMode: 'media,attribute',
+    defaultTheme: '',
+    fallback: false,
+    // migration guide
+    summary: '',
+    replacements:
+        '| literal | where | property | token | replacement |\n' + '|---|---|---|---|---|\n',
+    plumbing:
+        '1. Load the generated stylesheet **first**, before any other CSS.\n' +
+        '2. Keep the emitted `:root` block as the default theme.\n' +
+        '3. Opt-in switching is `[data-theme="…"]` on `<html>`.\n' +
+        '4. Add `color-scheme: light dark` to `:root` so form controls and scrollbars follow.',
+    alpha:
+        'Translucent uses of a token become `color-mix(in oklab, var(--color-X) 40%, transparent)`.\n' +
+        'One-off shades can use relative colour syntax: `oklch(from var(--color-X) calc(l - 0.06) c h)`.\n' +
+        'Shadows and scrims stay literal.',
+    skip:
+        '`currentColor`, `transparent`, pure black shadows/scrims, white hairlines (use `color-mix` from the text token), ' +
+        'and any third-party component you do not own.',
+    order:
+        'Replace literals → delete redundant per-theme overrides → add `color-scheme` → states → remove fallbacks.',
+    findings: '',
+    // evidence / working notes (analyze.op.md §2): stored so the harness is
+    // self-contained; printed as an appendix of the generated guide
+    inventory: '',
+    tokenMap: '',
+    relations: '',
+    expected: '',
+    preview: {html: DEFAULT_PREVIEW_HTML, css: DEFAULT_PREVIEW_CSS},
 };
 
-const clone = (v) =>
-  typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v));
+const clone = (v) => {
+    try {
+        return typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v));
+    } catch (err) {
+        console.error('Failed to clone object in doc-store:', err);
+        return v;
+    }
+};
 const listeners = new Set();
 let current = clone(DEFAULT_DOC);
 
 function emit() {
-  for (const fn of [...listeners]) fn(current);
+    for (const fn of [...listeners]) {
+        try {
+            fn(current);
+        } catch (err) {
+            console.error('Error in doc-store listener callback:', err);
+        }
+    }
 }
 
 export const themeDoc = {
-  get() {
-    return current;
-  },
-  /** Replace the whole document; missing fields fall back to the defaults. */
-  set(next = {}) {
-    const d = clone(next ?? {});
-    current = {
-      ...clone(DEFAULT_DOC),
-      ...d,
-      preview: { ...DEFAULT_DOC.preview, ...(d.preview ?? {}) },
-    };
-    emit();
-  },
-  patch(delta) {
-    current = { ...current, ...delta };
-    emit();
-  },
-  patchPreview(delta) {
-    current = { ...current, preview: { ...current.preview, ...delta } };
-    emit();
-  },
-  reset() {
-    this.set(DEFAULT_DOC);
-  },
-  subscribe(fn) {
-    listeners.add(fn);
-    return () => listeners.delete(fn);
-  },
+    get() {
+        return current;
+    },
+    /** Replace the whole document; missing fields fall back to the defaults. */
+    set(next = {}) {
+        if (next !== null && typeof next !== 'object') {
+            console.warn('themeDoc.set expected an object or null/undefined, received:', typeof next);
+        }
+        const d = clone(next ?? {});
+        current = {
+            ...clone(DEFAULT_DOC),
+            ...d,
+            preview: {...DEFAULT_DOC.preview, ...(d.preview ?? {})},
+        };
+        emit();
+    },
+    patch(delta) {
+        if (!delta || typeof delta !== 'object' || Array.isArray(delta)) {
+            console.warn('themeDoc.patch expected a plain object delta, received:', delta);
+            return;
+        }
+        current = {...current, ...delta};
+        emit();
+    },
+    patchPreview(delta) {
+        if (!delta || typeof delta !== 'object' || Array.isArray(delta)) {
+            console.warn('themeDoc.patchPreview expected a plain object delta, received:', delta);
+            return;
+        }
+        current = {...current, preview: {...current.preview, ...delta}};
+        emit();
+    },
+    reset() {
+        this.set(DEFAULT_DOC);
+    },
+    subscribe(fn) {
+        if (typeof fn !== 'function') {
+            console.warn('themeDoc.subscribe expected a function, received:', typeof fn);
+            return () => {
+            };
+        }
+        listeners.add(fn);
+        return () => listeners.delete(fn);
+    },
 };
 
 /** File-name stem from a project title. */
-export const slug = (s) =>
-  String(s ?? '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'theme';
+export const slug = (s) => {
+    try {
+        return (
+            String(s ?? '')
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '') || 'theme'
+        );
+    } catch (err) {
+        console.error('Failed to generate slug from input:', s, err);
+        return 'theme';
+    }
+};
