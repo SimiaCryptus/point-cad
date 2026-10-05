@@ -252,14 +252,6 @@ them and the guide prints them in §12). Requirements:
   `:root` colours itself.
 - Keep it to a screenful. No layout framework, no images.
 
-### 2.10 Write the migration guide
-
-Derive it from the inventory: which literal becomes which `var()`, where, and what to
-delete. Detailed requirements in §3.8.
-
-- _Save CSS_ — `<project>-tokens.css`, the stylesheet the app loads first.
-- _Save tokens_ / _Save .pcad_ when the host wants them.
-
 ---
 
 ## 3. The harness document (`theme-doc`)
@@ -300,47 +292,6 @@ point, shared variable).
 The complete, parseable sketch as one JSON string (no fence), commented like
 `demo/palette.pcad`. It appears in the Script window when the harness opens and as §11
 of the guide; a designer should be able to press _Solve themes_ on it as is.
-
-### 3.6 Demonstration (`preview.css`, `preview.html`)
-
-The two raw templates from §2.9. Say in `expected` (one sentence each) what they
-exercise; the Preview window renders them against the solved palette of the selected
-theme.
-
-### 3.7 Expected solver output (`expected`)
-
-Describe what _Export CSS_ produces for this sketch (format in §5) and, if you ran the
-solve, paste the actual output with the log line
-(`solve: converged=… iterations=… residual=… light: 0 unmet · dark: 0 unmet`). Then list,
-per theme, the derived tokens that moved more than ΔE 0.05 from their seed and which
-rule moved them. Those are the design changes the sketch implies.
-
-### 3.8 Migration guide (`replacements`, `plumbing`, `alpha`, `skip`, `order`)
-
-Five fields carry the seven items below: 1 and 3 go into `replacements` (deletions are
-rows too), 2 into `plumbing`, 4 and 5 into `alpha`, 6 into `skip`, 7 into `order`.
-
-1. **Replacement table** — one row per (literal, property class): file (s) and count,
-   the token, and the exact replacement text, e.g.
-   `color: #222` → `color: var(--color-text)`. Order rows by file.
-2. **Theme plumbing** — how the existing switching mechanism maps onto the emitted
-   blocks: `:root` (default theme), `@media (prefers-color-scheme: dark) { :root … }`,
-   `[data-theme="…"]`. If the CSS used a class (`.dark`), say whether to adopt
-   `data-theme` or to add a class selector to the export. Add
-   `color-scheme: light dark` to `:root` so form controls and scrollbars follow.
-3. **Per-rule theme overrides to delete** — every declaration inside a theme context
-   that merely swapped a colour becomes redundant once the rule uses a token; list them.
-4. **Alpha and derived values** — translucent uses of a token become
-   `color-mix(in oklab, var(--color-text) 60%, transparent)`; hover shades that were _not_ promoted to a token can use
-   relative colour syntax
-   `oklch(from var(--color-accent) calc(l - 0.06) c h)`. Shadows usually stay literal.
-5. **Fallbacks** — during transition use `var(--color-x, <old literal>)`; remove the
-   fallbacks once the token file ships unconditionally.
-6. **Do not tokenise** — `currentColor`, `transparent`, pure `#000` scrims, colours
-   inside third-party components you do not own. Say which.
-7. **Order of work** — replace literals → delete redundant theme overrides → add
-   `color-scheme` → states → remove fallbacks; each step should leave the page looking
-   identical when the sketch is solved with `-> min` objectives disabled.
 
 ### 3.9 Findings and open questions (`findings`)
 
@@ -414,30 +365,30 @@ For the worked example in §6 the light block reads:
 ```css
 /* Point-CAD theme — 10 colours, themes: light, dark */
 :root {
-  --color-canvas: oklch(98% 0.005 90);
-  --color-brand: oklch(52.556% 0.19879 268.04);
-  --color-surface-1: oklch(94% 0.0059 88.4);
-  --color-surface-2: oklch(90% 0.0059 88.4);
-  --color-surface-3: oklch(86% 0.0059 88.4);
-  --color-text: oklch(45.075% 0.01 260);
-  --color-text-muted: oklch(55.422% 0.01 260);
-  --color-border: oklch(65.449% 0.01 260);
-  --color-accent: oklch(52.556% 0.12 88.04);
-  --color-link: oklch(52.556% 0.19879 268.04);
+    --color-canvas: oklch(98% 0.005 90);
+    --color-brand: oklch(52.556% 0.19879 268.04);
+    --color-surface-1: oklch(94% 0.0059 88.4);
+    --color-surface-2: oklch(90% 0.0059 88.4);
+    --color-surface-3: oklch(86% 0.0059 88.4);
+    --color-text: oklch(45.075% 0.01 260);
+    --color-text-muted: oklch(55.422% 0.01 260);
+    --color-border: oklch(65.449% 0.01 260);
+    --color-accent: oklch(52.556% 0.12 88.04);
+    --color-link: oklch(52.556% 0.19879 268.04);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    /* dark theme, same ten properties */
-  }
+    :root {
+        /* dark theme, same ten properties */
+    }
 }
 
 [data-theme='light'] {
-  /* same as :root */
+    /* same as :root */
 }
 
 [data-theme='dark'] {
-  /* same as the media block */
+    /* same as the media block */
 }
 ```
 
@@ -555,94 +506,149 @@ observed values):
 
 ```css
 body {
-  margin: 0;
-  padding: 20px;
-  font:
-    14px/1.5 system-ui,
+    margin: 0;
+    padding: 20px;
+    font: 14px/1.5 system-ui,
     sans-serif;
-  background: var(--color-canvas, #fdfcf9);
-  color: var(--color-text, #222);
+    background: var(--color-canvas, #fdfcf9);
+    color: var(--color-text, #222);
 }
 
 h2 {
-  margin: 0 0 4px;
-  font-size: 20px;
+    margin: 0 0 4px;
+    font-size: 20px;
 }
 
 .muted {
-  color: var(--color-text-muted, #666);
+    color: var(--color-text-muted, #666);
 }
 
 a {
-  color: var(--color-link, #36c);
+    color: var(--color-link, #36c);
 }
 
 .card {
-  background: var(--color-surface-1, #f1efe9);
-  border: 1px solid var(--color-border, #ccc);
-  border-radius: 8px;
-  padding: 12px;
-  margin: 12px 0;
+    background: var(--color-surface-1, #f1efe9);
+    border: 1px solid var(--color-border, #ccc);
+    border-radius: 8px;
+    padding: 12px;
+    margin: 12px 0;
 }
 
 .card .card {
-  background: var(--color-surface-2, #e4e1d9);
+    background: var(--color-surface-2, #e4e1d9);
 }
 
 .card .card .card {
-  background: var(--color-surface-3, #d7d3c9);
+    background: var(--color-surface-3, #d7d3c9);
 }
 
 .btn {
-  display: inline-block;
-  background: var(--color-accent, #c60);
-  color: var(--color-canvas, #fff);
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-weight: 600;
+    display: inline-block;
+    background: var(--color-accent, #c60);
+    color: var(--color-canvas, #fff);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: 600;
 }
 ```
 
 ```html
 <h2>Sample page</h2>
 <p>
-  Body text on <code>canvas</code>.
-  <span class="muted">Secondary text uses <code>textMuted</code>.</span> A <a href="#">link</a> sits
-  on the brand hue.
+    Body text on <code>canvas</code>.
+    <span class="muted">Secondary text uses <code>textMuted</code>.</span> A <a href="#">link</a> sits
+    on the brand hue.
 </p>
 <div class="card">
-  <b>surface1</b>
-  <div class="card">
-    <b>surface2</b>
-    <div class="card"><b>surface3</b> — three even lightness steps.</div>
-  </div>
+    <b>surface1</b>
+    <div class="card">
+        <b>surface2</b>
+        <div class="card"><b>surface3</b> — three even lightness steps.</div>
+    </div>
 </div>
 <p><span class="btn">Accent action</span></p>
 <p class="muted">
-  Every colour above is a solved point in OKLab; edit an anchor or a rule in the script window and
-  re-solve.
+    Every colour above is a solved point in OKLab; edit an anchor or a rule in the script window and
+    re-solve.
 </p>
 ```
 
 `preview.html`:
 
 ```html
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>... — theme designer harness</title>
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+            background: #15181f;
+            color: #e8ecf3;
+            font: 14px/1.4 system-ui, sans-serif;
+        }
 
+        point-cad {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<point-cad
+        id="cad"
+        panels="swatches,preview,handoff,variables,points,constraints,script,solve"
+></point-cad>
+<pre id="boot-error"></pre>
+
+<script type="application/json" id="theme-doc">
+    {
+      "generator": "analyze.op",
+      "generated": "2025-01-01T00:00:00Z",
+      "pcad": "# theme_design — one colour model, two themes\nspace oklab\nunits none deg\ngamut srgb\n…",
+      "doc": {
+        "project": "My app",
+        "prefix": "color-",
+        "format": "oklch",
+        "scope": ":root",
+        "switchMode": "media,attribute",
+        "defaultTheme": "",
+        "fallback": false,
+        "preview": {
+          "html": "<h2>Sample page</h2>…",
+          "css": "body { background: var(--color-canvas, #fdfcf9); … }"
+        }
+      }
+    }
+</script>
+
+<script type="module">
+    // Adjust this single constant if the Point-CAD library lives elsewhere.
+    const HARNESS_URL =
+            'https://math.cognotik.com/experiments/point-cad/extensions/theme/ui/harness.js';
+    try {
+        const {bootHarness} = await import(HARNESS_URL);
+        await bootHarness(document.getElementById('cad'));
+    } catch (err) {
+        const el = document.getElementById('boot-error');
+        el.style.display = 'block';
+        el.textContent =
+                'Could not load the theme-designer harness from "' +
+                HARNESS_URL +
+                '".\n' +
+                'Edit HARNESS_URL at the bottom of this file to point at\n' +
+                'extensions/theme/ui/harness.js, then reload.\n\n' +
+                err;
+    }
+</script>
+</body>
+</html>
 ```
-
-`replacements` excerpt for the same example:
-
-| literal           | where                  | property   | token       | replacement                         |
-|-------------------|------------------------|------------|-------------|-------------------------------------|
-| `#fdfcf9`         | app.css ×1             | background | `canvas`    | `background: var(--color-canvas)`   |
-| `#222`            | app.css ×7             | color      | `text`      | `color: var(--color-text)`          |
-| `#666`            | app.css ×3             | color      | `textMuted` | `color: var(--color-text-muted)`    |
-| `#ccc`            | app.css ×4             | border     | `border`    | `border-color: var(--color-border)` |
-| `#36c`            | app.css ×2             | color      | `link`      | `color: var(--color-link)`          |
-| `#3b5bdb`         | app.css ×2, nav.css ×1 | background | `brand`     | `background: var(--color-brand)`    |
-| `rgba(0,0,0,.12)` | app.css ×2             | box-shadow | —           | keep literal (shadow)               |
-
----
 
 ## 7. Pitfalls to check before finishing
 
@@ -668,84 +674,3 @@ a {
   `pcad`, and `</` as `<\/`.
   those in §4; `index.html` must open with no errors in the log.
 
----
-
-## 8. Acceptance checklist
-
-- [ ] The sketch parses and solves (`converged=true`, `0 unmet` per theme, or unmet
-- [ ] `index.html` opens in a browser: the `theme-doc` block is valid JSON, the
-  log says `loaded embedded sketch`, and no `src=` fetch error appears.
-- [ ] Every colour literal in the matched CSS appears in `inventory`, and every cluster
-  is either a token in `tokenMap` or explained in `findings`.
-  constraints explained).
-- [ ] Every exported token is seeded with an observed value (light) and, for dark, either
-  observed or seeded on the correct side of the canvas.
-- [ ] Every text/background pair that occurs in the CSS has a `contrast` floor.
-- [ ] Every rule in the sketch has evidence or a stated design decision in §3.4.
-- [ ] Every derived point is determined on all three axes, or its slack is listed.
-- [ ] The demo CSS references only tokens that exist and uses each exported token once.
-- [ ] The migration table covers every occurrence in the inventory, including deletions
-  of redundant per-theme overrides.
-- [ ] Proposed (not found) themes and all accessibility failures are listed as findings.
-
-### 2.11 Write the harness
-
-Copy `demo/theme.html` to `index.html` and fill in its `theme-doc` block — do not
-leave the file to be assembled by hand in the browser:
-
-1. Remove the `src="./palette.pcad"` attribute from `<point-cad>`. An embedded sketch
-   wins over `src=` anyway, but the attribute would still fetch (and log an error) when
-   the file is opened from another directory.
-2. Point the module import at the library relative to where `index.html` lives:
-   `import { bootHarness } from "https://math.cognotik.com/experiments/point-cad/extensions/theme/ui/harness.js"`.
-3. Fill the JSON block. Every key of `doc` is optional and falls back to the harness
-   defaults; `pcad` is the complete sketch of §2.8 as **one JSON string** (`\n` between
-   lines, `"` and `\` escaped). Prose fields are markdown; `preview.html` /
-   `preview.css` are raw markup and CSS. Escape any `</` inside the block as `<\/` (the
-   harness itself writes `\u003c`) so the browser does not close the script early.
-   ```html
-   <script type="application/json" id="theme-doc">
-     {
-       "generator": "analyze.op",
-       "generated": "2025-01-01T00:00:00Z",
-       "pcad": "# theme_design — one colour model, two themes\nspace oklab\nunits none deg\ngamut srgb\n…",
-       "doc": {
-         "project": "My app",
-         "prefix": "color-",
-         "format": "oklch",
-         "scope": ":root",
-         "switchMode": "media,attribute",
-         "defaultTheme": "",
-         "fallback": false,
-         "summary": "…",
-         "replacements": "| literal | where | property | token | replacement |\n|---|---|---|---|---|\n| `#222` | app.css ×7 | color | `text` | `color: var(--color-text)` |",
-         "plumbing": "…",
-         "alpha": "…",
-         "skip": "…",
-         "order": "…",
-         "findings": "…",
-         "inventory": "…",
-         "tokenMap": "…",
-         "relations": "…",
-         "expected": "…",
-         "preview": {
-           "html": "<h2>Sample page</h2>…",
-           "css": "body { background: var(--color-canvas, #fdfcf9); … }"
-         }
-       }
-     }
-   </script>
-   ```
-4. Verify in a browser: open the file, check the log for `loaded embedded sketch` with
-   no parse errors, press _Solve themes_ and read `0 unmet` per theme (or explain the
-   unmet constraints in `findings`). If the session changed anything worth keeping, _Save harness (.html)_ writes the
-   same file format back.
-   From that file the designer produces every derived artefact without any notes document:
-
-- _Save harness (.html)_ — the deliverable itself: sketch + templates + guide + evidence.
-- _Save guide (.md)_ — `<project>-integration.md`, generated from the fields: the token
-  table, the CSS, numbered adoption steps for a human or an agent, the six migration
-  fields verbatim, the sketch, the demonstration, the solver report and the evidence
-  appendix. Nobody writes this file by hand.
-- _Open…_ (or dropping a file on the viewport) re-loads a saved harness, a `.pcad` or a
-  sketch `.json` into the same page.
