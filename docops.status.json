@@ -1,0 +1,271 @@
+{
+  "lastUpdated": "2026-10-01T20:55:34.326891477Z",
+  "tasks": {
+    "core/events.js": {
+      "target": "core/events.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-P86Y88TO",
+      "startedAt": "2026-10-01T18:15:15.698377037Z",
+      "completedAt": "2026-10-01T18:15:33.339150134Z"
+    },
+    "core/index.js": {
+      "target": "core/index.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-vnqOEpBJ",
+      "startedAt": "2026-10-01T18:15:33.364358179Z",
+      "completedAt": "2026-10-01T18:15:53.189360741Z"
+    },
+    "core/measures.js": {
+      "target": "core/measures.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-B3O7IcLa",
+      "startedAt": "2026-10-01T18:15:53.210072452Z",
+      "completedAt": "2026-10-01T18:16:04.291082849Z"
+    },
+    "core/model.js": {
+      "target": "core/model.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-4m4erBFi",
+      "startedAt": "2026-10-01T18:16:04.315672596Z",
+      "completedAt": "2026-10-01T18:17:13.418752092Z"
+    },
+    "core/problem.js": {
+      "target": "core/problem.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-paE7jluQ",
+      "startedAt": "2026-10-01T18:17:13.439086754Z",
+      "completedAt": "2026-10-01T18:17:34.218427498Z"
+    },
+    "core/registry.js": {
+      "target": "core/registry.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-kSWhqqmh",
+      "startedAt": "2026-10-01T20:40:26.598838353Z",
+      "completedAt": "2026-10-01T20:40:46.391539737Z"
+    },
+    "core/serialize.js": {
+      "target": "core/serialize.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-JFPuKTjT",
+      "startedAt": "2026-10-01T20:40:46.422099821Z",
+      "completedAt": "2026-10-01T20:41:02.828586381Z"
+    },
+    "core/solver-gn.js": {
+      "target": "core/solver-gn.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-pYeEBB6H",
+      "startedAt": "2026-10-01T20:41:02.872272104Z",
+      "completedAt": "2026-10-01T20:41:34.128688397Z"
+    },
+    "core/space-euclid3.js": {
+      "target": "core/space-euclid3.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-hJrfMqrH",
+      "startedAt": "2026-10-01T20:41:34.156941418Z",
+      "completedAt": "2026-10-01T20:42:11.256670376Z"
+    },
+    "extensions/theme/constraints-color.js": {
+      "target": "extensions/theme/constraints-color.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-rvTePsJ2",
+      "startedAt": "2026-10-01T20:42:11.276205701Z",
+      "completedAt": "2026-10-01T20:42:31.472503441Z"
+    },
+    "extensions/theme/emit-css.js": {
+      "target": "extensions/theme/emit-css.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-Zql24Myx",
+      "startedAt": "2026-10-01T20:42:31.499805765Z",
+      "completedAt": "2026-10-01T20:42:56.856541039Z"
+    },
+    "extensions/theme/emit-tokens.js": {
+      "target": "extensions/theme/emit-tokens.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-aAdHYxSy",
+      "startedAt": "2026-10-01T20:42:56.882578249Z",
+      "completedAt": "2026-10-01T20:43:22.979418289Z"
+    },
+    "extensions/theme/index.js": {
+      "target": "extensions/theme/index.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-Xlp9Z9Xx",
+      "startedAt": "2026-10-01T20:43:23.000625023Z",
+      "completedAt": "2026-10-01T20:43:39.891402520Z"
+    },
+    "extensions/theme/measures-color.js": {
+      "target": "extensions/theme/measures-color.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-WFk9PMv8",
+      "startedAt": "2026-10-01T20:43:39.914432016Z",
+      "completedAt": "2026-10-01T20:44:04.032112343Z"
+    },
+    "extensions/theme/space-oklab.js": {
+      "target": "extensions/theme/space-oklab.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-NjJHw0WY",
+      "startedAt": "2026-10-01T20:44:04.052114812Z",
+      "completedAt": "2026-10-01T20:45:01.277998870Z"
+    },
+    "extensions/theme/themes.js": {
+      "target": "extensions/theme/themes.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-xe1hGHpa",
+      "startedAt": "2026-10-01T20:45:01.297386578Z",
+      "completedAt": "2026-10-01T20:45:31.404054647Z"
+    },
+    "extensions/theme/ui/doc-store.js": {
+      "target": "extensions/theme/ui/doc-store.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-tb3g8vqY",
+      "startedAt": "2026-10-01T20:45:31.420236642Z",
+      "completedAt": "2026-10-01T20:45:43.480699789Z"
+    },
+    "extensions/theme/ui/handoff.js": {
+      "target": "extensions/theme/ui/handoff.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-EBNWZyj1",
+      "startedAt": "2026-10-01T20:45:43.499256931Z",
+      "completedAt": "2026-10-01T20:46:07.619054927Z"
+    },
+    "extensions/theme/ui/harness.js": {
+      "target": "extensions/theme/ui/harness.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-8Re3Mgiv",
+      "startedAt": "2026-10-01T20:46:07.636105050Z",
+      "completedAt": "2026-10-01T20:46:36.239343142Z"
+    },
+    "extensions/theme/ui/index.js": {
+      "target": "extensions/theme/ui/index.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-dfEbrYdF",
+      "startedAt": "2026-10-01T20:46:36.261568429Z",
+      "completedAt": "2026-10-01T20:46:48.194414903Z"
+    },
+    "extensions/theme/ui/preview.js": {
+      "target": "extensions/theme/ui/preview.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-4YiIVGub",
+      "startedAt": "2026-10-01T20:46:48.212207431Z",
+      "completedAt": "2026-10-01T20:47:08.300362289Z"
+    },
+    "extensions/theme/ui/swatch-board.js": {
+      "target": "extensions/theme/ui/swatch-board.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-WxzPmGhM",
+      "startedAt": "2026-10-01T20:47:08.318329501Z",
+      "completedAt": "2026-10-01T20:47:37.108601351Z"
+    },
+    "index.js": {
+      "target": "index.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-19mzASax",
+      "startedAt": "2026-10-01T20:47:37.127220803Z",
+      "completedAt": "2026-10-01T20:48:09.485467332Z"
+    },
+    "lang/commands.js": {
+      "target": "lang/commands.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-XpRDHTQP",
+      "startedAt": "2026-10-01T20:48:09.505361681Z",
+      "completedAt": "2026-10-01T20:48:29.622757873Z"
+    },
+    "lang/emitter.js": {
+      "target": "lang/emitter.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-XTxUJ5Sm",
+      "startedAt": "2026-10-01T20:48:29.638201790Z",
+      "completedAt": "2026-10-01T20:49:16.439329901Z"
+    },
+    "lang/index.js": {
+      "target": "lang/index.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-MFEemFxW",
+      "startedAt": "2026-10-01T20:49:16.458584650Z",
+      "completedAt": "2026-10-01T20:50:21.554355502Z"
+    },
+    "lang/lexer.js": {
+      "target": "lang/lexer.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-VRI7POo0",
+      "startedAt": "2026-10-01T20:50:21.572380292Z",
+      "completedAt": "2026-10-01T20:50:52.028710783Z"
+    },
+    "lang/macros.js": {
+      "target": "lang/macros.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-euyewTGB",
+      "startedAt": "2026-10-01T20:50:52.043979186Z",
+      "completedAt": "2026-10-01T20:51:24.363148006Z"
+    },
+    "lang/parser.js": {
+      "target": "lang/parser.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-5pmw10ag",
+      "startedAt": "2026-10-01T20:51:24.383324321Z",
+      "completedAt": "2026-10-01T20:52:15.324978040Z"
+    },
+    "ui/dom.js": {
+      "target": "ui/dom.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-0qrZbYQq",
+      "startedAt": "2026-10-01T20:52:15.342151852Z",
+      "completedAt": "2026-10-01T20:52:39.362466841Z"
+    },
+    "ui/panels/constraints.js": {
+      "target": "ui/panels/constraints.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-ZeHd3uAd",
+      "startedAt": "2026-10-01T20:52:39.380578533Z",
+      "completedAt": "2026-10-01T20:52:58.408078238Z"
+    },
+    "ui/panels/points.js": {
+      "target": "ui/panels/points.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-5BREYQBj",
+      "startedAt": "2026-10-01T20:52:58.422822112Z",
+      "completedAt": "2026-10-01T20:53:21.238209621Z"
+    },
+    "ui/panels/script.js": {
+      "target": "ui/panels/script.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-t48EwjDC",
+      "startedAt": "2026-10-01T20:53:21.251785945Z",
+      "completedAt": "2026-10-01T20:53:41.236610811Z"
+    },
+    "ui/panels/solve.js": {
+      "target": "ui/panels/solve.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-2KlIaUII",
+      "startedAt": "2026-10-01T20:53:41.250507515Z",
+      "completedAt": "2026-10-01T20:54:04.234363308Z"
+    },
+    "ui/panels/variables.js": {
+      "target": "ui/panels/variables.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-vPsnigVF",
+      "startedAt": "2026-10-01T20:54:04.249800335Z",
+      "completedAt": "2026-10-01T20:54:25.428050444Z"
+    },
+    "ui/point-cad.js": {
+      "target": "ui/point-cad.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-tHvcR9NE",
+      "startedAt": "2026-10-01T20:54:25.444815220Z",
+      "completedAt": "2026-10-01T20:54:46.140715075Z"
+    },
+    "ui/vec3.js": {
+      "target": "ui/vec3.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-46rrr6Dm",
+      "startedAt": "2026-10-01T20:54:46.154985383Z",
+      "completedAt": "2026-10-01T20:55:04.098714751Z"
+    },
+    "ui/viewport.js": {
+      "target": "ui/viewport.js",
+      "status": "COMPLETED",
+      "sessionId": "U-20261001-p9AA8wEB",
+      "startedAt": "2026-10-01T20:55:04.112318518Z",
+      "completedAt": "2026-10-01T20:55:34.326891477Z"
+    }
+  }
+}
