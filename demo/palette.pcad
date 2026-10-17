@@ -2,6 +2,8 @@
 space oklab
 units none deg
 gamut srgb                               # every exported colour must stay inside sRGB
+project "Demo Palette"
+output css "palette-tokens.css" prefix "color-" format oklch switching "media,attribute"
 
 var stepL   = -0.04                      # lightness step between surfaces (per theme)
 var mutedC  = 4.5   locked               # contrast ratio for secondary text

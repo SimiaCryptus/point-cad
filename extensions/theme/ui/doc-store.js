@@ -31,6 +31,12 @@ a { color: var(--color-link, #36c); }
 /** Every field the harness carries. Prose fields are markdown. */
 export const DEFAULT_DOC = {
     project: 'My app',
+     sourceUrl: '',
+     templateHtmlPath: '',
+     templateCssPath: '',
+     outputCssPath: '',
+     outputTokensPath: '',
+     outputGuidePath: '',
     // emitter options (see emit-css.js)
     prefix: 'color-',
     format: 'oklch',
@@ -120,6 +126,34 @@ export const themeDoc = {
         current = {...current, preview: {...current.preview, ...delta}};
         emit();
     },
+     /**
+      * Synchronize document fields from PCS statements (`project`, `template`, `output`)
+      * parsed into `sketch.extensions.theme`.
+      */
+     syncFromSketch(sketch, sourceUrl = null) {
+         if (!sketch || typeof sketch !== 'object') return;
+         const t = sketch.extensions?.theme ?? {};
+         const tpl = t.template ?? {};
+         const out = t.output ?? {};
+         const delta = {};
+         if (sourceUrl != null) delta.sourceUrl = String(sourceUrl);
+         if (t.project) delta.project = t.project;
+         if (tpl.html !== undefined) delta.templateHtmlPath = tpl.html || '';
+         if (tpl.css !== undefined) delta.templateCssPath = tpl.css || '';
+         if (out.css !== undefined) delta.outputCssPath = out.css || '';
+         if (out.tokens !== undefined) delta.outputTokensPath = out.tokens || '';
+         if (out.guide !== undefined) delta.outputGuidePath = out.guide || '';
+         if (out.prefix !== undefined) delta.prefix = out.prefix;
+         if (out.format !== undefined) delta.format = out.format;
+         if (out.scope !== undefined) delta.scope = out.scope;
+         if (out.switchMode !== undefined) delta.switchMode = out.switchMode;
+         if (out.defaultTheme !== undefined) delta.defaultTheme = out.defaultTheme;
+         if (out.fallback !== undefined) delta.fallback = !!out.fallback;
+         if (Object.keys(delta).length > 0) {
+             current = {...current, ...delta};
+             emit();
+         }
+     },
     reset() {
         this.set(DEFAULT_DOC);
     },

@@ -50,6 +50,12 @@ well beyond colors:
 - **CSS out of the box.** `emitCSS()` writes `:root` blocks with
   `oklch()`/`rgb()`/hex values and `prefers-color-scheme` / `data-theme`
   switching; `emitTokens()` writes W3C Design Tokens JSON.
+- **First-class `.pcad` / `.tcad` files & PWA integration.** Theme-CAD registers
+   `application/vnd.themecad` (`.tcad`) and `application/vnd.pointcad` (`.pcad`)
+   as PWA file handlers and accepts `?src=<url>` URL parameters. The primary text
+   of a file is pure Point-CAD constraint syntax, referencing external preview
+   templates (`template html "preview.html"`, `template css "preview.css"`) and
+   publishing targets (`output css "tokens.css" ...`) directly in the language.
 
 ## 2. Non-Goals (for v1)
 

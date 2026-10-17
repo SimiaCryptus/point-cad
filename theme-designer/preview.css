@@ -1,0 +1,87 @@
+body {
+  margin: 0;
+  padding: 24px;
+  font: 14px/1.6 'Inter', system-ui, sans-serif;
+  background: var(--color-canvas, #0a0d14);
+  color: var(--color-text, #e6edf3);
+}
+h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+.muted {
+  color: var(--color-text-muted, #8b949e);
+}
+a {
+  color: var(--color-link, #58a6ff);
+}
+mark {
+  background: color-mix(in oklab, var(--color-highlight, #ffe1a3) 24%, transparent);
+  color: var(--color-highlight, #ffe1a3);
+  border-radius: 3px;
+  padding: 0 0.15em;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  background: var(--color-surface-1, #0d1117);
+  border: 1px solid var(--color-border, #30363d);
+  border-radius: 10px;
+}
+.bar b {
+  color: var(--color-brand, #58a6ff);
+}
+.card {
+  background: var(--color-surface-2, #161b22);
+  border: 1px solid var(--color-border, #30363d);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 12px 0;
+}
+.card .card {
+  background: var(--color-surface-1, #0d1117);
+}
+.btn {
+  display: inline-block;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: var(--color-on-accent, #0a0d14);
+  background: linear-gradient(135deg, var(--color-brand, #58a6ff), var(--color-brand-hover, #79b8ff));
+}
+.btn:hover {
+  background: var(--color-brand-hover, #79b8ff);
+}
+.chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-on-accent, #0a0d14);
+  background: var(--color-accent-2, #bc8cff);
+}
+.chip:hover {
+  background: var(--color-accent-2-hover, #a78bff);
+}
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.badge.ok {
+  color: var(--color-success, #7ee787);
+  border-color: color-mix(in oklab, var(--color-success, #7ee787) 30%, transparent);
+}
+.badge.warn {
+  color: var(--color-warning, #ffa657);
+  border-color: color-mix(in oklab, var(--color-warning, #ffa657) 30%, transparent);
+}

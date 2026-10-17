@@ -4,7 +4,11 @@
 import {registry as defaultRegistry} from '../../core/index.js';
 import {oklab} from './space-oklab.js';
 import {colorConstraintKinds} from './constraints-color.js';
-import {gamutStatement, implicitGamutConstraints, POINT_ROLES, themeStatement} from './themes.js';
+import {
+     implicitGamutConstraints,
+     POINT_ROLES,
+     THEME_STATEMENTS,
+} from './themes.js';
 
 
 export function registerTheme(reg = defaultRegistry) {
@@ -43,7 +47,7 @@ export function registerTheme(reg = defaultRegistry) {
         }
     }
 
-    for (const st of [themeStatement, gamutStatement]) {
+     for (const st of THEME_STATEMENTS) {
         try {
             const hasSt = typeof reg.hasStatement === 'function' ? reg.hasStatement(st.id) : false;
             if (!hasSt) {

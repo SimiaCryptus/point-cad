@@ -4,7 +4,14 @@
 import {fmt, h, panelShell} from '../../../ui/dom.js';
 import {emitCSS} from '../emit-css.js';
 import {emitTokensString} from '../emit-tokens.js';
-import {exportedPoints, kebab, themeList} from '../themes.js';
+import {
+     exportedPoints,
+     kebab,
+     POINTCAD_MIME,
+     THEMECAD_MIME,
+     themeList,
+     themeMetadata,
+} from '../themes.js';
 import {slug, themeDoc} from './doc-store.js';
 
 export const FORMATS = ['oklch', 'oklab', 'rgb', 'hex'];
@@ -20,36 +27,49 @@ const fence = (lang, body) =>
 const num = (v) => (Array.isArray(v) ? v.map((x) => fmt(x, 4)).join(', ') : fmt(v, 4));
 
 /** Emitter options described by the document. */
-export function cssOptions(d = themeDoc.get()) {
+export function cssOptions(d = themeDoc.get(), sketch = null) {
+     const meta = sketch ? themeMetadata(sketch).output : {};
+     const prefix = meta.prefix ?? d.prefix ?? 'color-';
+     const format = meta.format ?? d.format ?? 'oklch';
+     const switchMode = meta.switchMode ?? d.switchMode ?? 'media,attribute';
+     const defaultTheme = meta.defaultTheme ?? d.defaultTheme ?? null;
+     const scope = meta.scope ?? d.scope ?? ':root';
+     const fallback = meta.fallback ?? d.fallback ?? false;
     return {
-        prefix: d.prefix ?? '',
-        format: FORMATS.includes(d.format) ? d.format : 'oklch',
-        switchMode: list(d.switchMode),
-        defaultTheme: d.defaultTheme || null,
-        scope: d.scope || ':root',
-        fallback: !!d.fallback,
+         prefix,
+         format: FORMATS.includes(format) ? format : 'oklch',
+         switchMode: list(switchMode),
+         defaultTheme: defaultTheme || null,
+         scope: scope || ':root',
+         fallback: !!fallback,
     };
 }
 
-export function fileNames(d = themeDoc.get()) {
-    const base = slug(d.project);
+export function fileNames(d = themeDoc.get(), sketch = null) {
+     const meta = sketch ? themeMetadata(sketch) : null;
+     const base = slug(meta?.project || d.project);
+     const out = meta?.output ?? {};
+     const tpl = meta?.template ?? {};
     return {
         base,
-        css: `${base}-tokens.css`,
-        tokens: `${base}-tokens.json`,
+         css: out.css || d.outputCssPath || `${base}-tokens.css`,
+         tokens: out.tokens || d.outputTokensPath || `${base}-tokens.json`,
         pcad: `${base}.pcad`,
-        md: `${base}-integration.md`,
+         tcad: `${base}.tcad`,
+         md: out.guide || d.outputGuidePath || `${base}-integration.md`,
         html: `${base}-theme.html`,
+         templateHtml: tpl.html || d.templateHtmlPath || 'preview.html',
+         templateCss: tpl.css || d.templateCssPath || 'preview.css',
     };
 }
 
 export function buildCSS(ctx, d = themeDoc.get()) {
-    return emitCSS(ctx.sketch, ctx.result, {...cssOptions(d), registry: ctx.registry});
+     return emitCSS(ctx.sketch, ctx.result, {...cssOptions(d, ctx.sketch), registry: ctx.registry});
 }
 
 export function buildTokens(ctx, d = themeDoc.get()) {
     return emitTokensString(ctx.sketch, ctx.result, {
-        format: cssOptions(d).format,
+         format: cssOptions(d, ctx.sketch).format,
         registry: ctx.registry,
     });
 }
@@ -66,7 +86,7 @@ export function tokenRows(ctx, d = themeDoc.get()) {
             `Space '${spaceName}' is not a colour space — start the script with 'space oklab'.`
         );
     }
-    const {prefix, format} = cssOptions(d);
+     const {prefix, format} = cssOptions(d, ctx.sketch);
     const themes = themeList(ctx.sketch, ctx.result);
     return exportedPoints(ctx.sketch).map((p) => ({
         id: p.id,
@@ -96,8 +116,8 @@ const unmetFor = (r, theme) => {
  */
 export function buildMarkdown(ctx, d = themeDoc.get()) {
     const sk = ctx.sketch;
-    const opt = cssOptions(d);
-    const files = fileNames(d);
+     const opt = cssOptions(d, sk);
+     const files = fileNames(d, sk);
     let rows = [];
     let rowError = null;
     try {
@@ -123,7 +143,7 @@ export function buildMarkdown(ctx, d = themeDoc.get()) {
         'the design rules (contrast floors, lightness ramps, hue families) and the solver derives every colour'
     );
     out.push(
-        `from them. Re-open \`${files.html}\` to change a rule and regenerate — never hand-edit the CSS.`
+         `from them. Open \`${files.pcad}\` in Theme-CAD to change a rule and regenerate — never hand-edit the CSS.`
     );
 
     head('At a glance');
@@ -141,7 +161,10 @@ export function buildMarkdown(ctx, d = themeDoc.get()) {
         `| solve | ${r ? `converged=${r.converged}, iterations=${r.iterations}, residual ${r.residualNorm.toExponential(3)}` : '**not run** — solve before shipping'} |`
     );
     out.push(
-        `| artefacts | \`${files.css}\` · \`${files.tokens}\` · \`${files.pcad}\` · \`${files.html}\` |`
+         `| templates | \`${files.templateHtml}\` · \`${files.templateCss}\` |`
+     );
+     out.push(
+         `| artefacts | \`${files.css}\` · \`${files.tokens}\` · \`${files.pcad}\` |`
     );
 
     prose('1. Summary', d.summary);
@@ -304,14 +327,20 @@ ${jsonScript(payload)}
 }
 
 export function artifact(ctx, kind, d = themeDoc.get()) {
-    const files = fileNames(d);
+     const files = fileNames(d, ctx.sketch);
     switch (kind) {
         case 'css':
             return {name: files.css, text: buildCSS(ctx, d), type: 'text/css'};
         case 'tokens':
             return {name: files.tokens, text: buildTokens(ctx, d), type: 'application/json'};
         case 'pcad':
-            return {name: files.pcad, text: ctx.toScript(), type: 'text/plain'};
+             return {name: files.pcad, text: ctx.toScript(), type: POINTCAD_MIME};
+         case 'tcad':
+             return {name: files.tcad, text: ctx.toScript(), type: THEMECAD_MIME};
+         case 'template-html':
+             return {name: files.templateHtml, text: d.preview?.html ?? '', type: 'text/html'};
+         case 'template-css':
+             return {name: files.templateCss, text: d.preview?.css ?? '', type: 'text/css'};
         case 'md':
             return {name: files.md, text: buildMarkdown(ctx, d), type: 'text/markdown'};
         case 'html':
@@ -362,6 +391,30 @@ export function hostContext(el) {
         toScript: () => el.toScript(),
     };
 }
+/** Write sketch-level theme metadata (`project`, `template`, `output`) back into `sketch.extensions.theme`. */
+function syncSketchThemeMeta(ctx, patch = {}) {
+     const sk = ctx?.sketch;
+     if (!sk) return;
+     if (!sk.extensions || typeof sk.extensions !== 'object') sk.extensions = {};
+     if (!sk.extensions.theme || typeof sk.extensions.theme !== 'object') sk.extensions.theme = {};
+     const t = sk.extensions.theme;
+     if ('project' in patch) t.project = patch.project || undefined;
+     if (!t.template || typeof t.template !== 'object') t.template = {};
+     if ('templateHtmlPath' in patch) t.template.html = patch.templateHtmlPath || undefined;
+     if ('templateCssPath' in patch) t.template.css = patch.templateCssPath || undefined;
+     if (!t.output || typeof t.output !== 'object') t.output = {};
+     if ('outputCssPath' in patch) t.output.css = patch.outputCssPath || undefined;
+     if ('outputTokensPath' in patch) t.output.tokens = patch.outputTokensPath || undefined;
+     if ('outputGuidePath' in patch) t.output.guide = patch.outputGuidePath || undefined;
+     if ('prefix' in patch) t.output.prefix = patch.prefix;
+     if ('format' in patch) t.output.format = patch.format;
+     if ('scope' in patch) t.output.scope = patch.scope;
+     if ('switchMode' in patch) t.output.switchMode = patch.switchMode;
+     if ('defaultTheme' in patch) t.output.defaultTheme = patch.defaultTheme || undefined;
+     if ('fallback' in patch) t.output.fallback = !!patch.fallback;
+     if (typeof ctx.commit === 'function') ctx.commit('theme-meta');
+}
+
 
 // ---- tool window ------------------------------------------------------
 export function createHandoffPanel(ctx) {
@@ -370,7 +423,9 @@ export function createHandoffPanel(ctx) {
         bound.set(key, input);
         const write = () => {
             try {
-                themeDoc.patch({[key]: input.type === 'checkbox' ? input.checked : input.value});
+                 const val = input.type === 'checkbox' ? input.checked : input.value;
+                 themeDoc.patch({[key]: val});
+                 syncSketchThemeMeta(ctx, {[key]: val});
             } catch (e) {
                 console.error(`[handoff] Failed to patch themeDoc field '${key}':`, e);
             }
@@ -395,6 +450,11 @@ export function createHandoffPanel(ctx) {
         h('details', {class: 'pc-doc-section', open}, h('summary', {}, title), ...kids);
 
     const projectIn = textIn('project', "Used in the guide's title and in every file name");
+     const tplHtmlIn = textIn('templateHtmlPath', 'Template HTML path (template html "…")');
+     const tplCssIn = textIn('templateCssPath', 'Template CSS path (template css "…")');
+     const outCssIn = textIn('outputCssPath', 'Output CSS path (output css "…")');
+     const outTokensIn = textIn('outputTokensPath', 'Output tokens JSON path (output tokens "…")');
+     const outGuideIn = textIn('outputGuidePath', 'Output markdown guide path (output guide "…")');
     const prefixIn = textIn('prefix', 'Custom-property prefix', 'pc-in pc-in-pt');
     const formatSel = bind(
         'format',
@@ -495,20 +555,34 @@ export function createHandoffPanel(ctx) {
                 },
                 'pc-primary'
             ),
+             btn('Save .pcad', 'Save the Point-CAD / Theme-CAD constraint file', () => save('pcad')),
             btn('Save CSS', 'Custom properties for every theme', () => save('css')),
             btn('Save tokens', 'W3C Design Tokens JSON', () => save('tokens')),
-            btn('Save .pcad', 'The sketch (source of truth)', () => save('pcad')),
             btn('Save guide (.md)', 'Integration guide for a human or an agent', () => save('md')),
-            btn('Save harness (.html)', 'This page with the sketch and every field embedded', () =>
-                save('html')
-            ),
             btn('Copy guide', 'Copy the integration guide to the clipboard', copyGuide)
         ),
         status,
         section(
-            'Project & emitter',
+             'Project, files & emitter',
             true,
             field('Project', projectIn, 'Names the guide and the exported files.'),
+             h(
+                 'div',
+                 {class: 'pc-row'},
+                 h('label', {}, 'Template HTML'),
+                 tplHtmlIn,
+                 h('label', {}, 'Template CSS'),
+                 tplCssIn
+             ),
+             h(
+                 'div',
+                 {class: 'pc-row'},
+                 h('label', {}, 'Output CSS'),
+                 outCssIn,
+                 h('label', {}, 'Output tokens'),
+                 outTokensIn
+             ),
+             field('Output guide', outGuideIn, 'Referenced in PCS via `template` and `output` statements.'),
             h(
                 'div',
                 {class: 'pc-row'},
@@ -628,6 +702,7 @@ export function createHandoffPanel(ctx) {
 
     function update() {
         try {
+             themeDoc.syncFromSketch(ctx.sketch);
             const d = themeDoc.get();
             for (const [key, input] of bound) {
                 if (key === 'defaultTheme' || input.matches(':focus')) continue;

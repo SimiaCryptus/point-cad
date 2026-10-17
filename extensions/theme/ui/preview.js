@@ -5,7 +5,7 @@
 import {h, panelShell} from '../../../ui/dom.js';
 import {emitCSS} from '../emit-css.js';
 import {DEFAULT_PREVIEW_CSS, DEFAULT_PREVIEW_HTML, themeDoc} from './doc-store.js';
-import {cssOptions} from './handoff.js';
+import {cssOptions, saveArtifact} from './handoff.js';
 
 export {DEFAULT_PREVIEW_HTML, DEFAULT_PREVIEW_CSS};
 
@@ -69,7 +69,7 @@ export function createPreviewPanel(ctx, overrides = {}) {
         },
     });
     htmlTa.value = tmpl().html;
-    htmlTa.value = tmpl().css;
+     cssTa.value = tmpl().css;
 
     const copyBtn = (get, label = 'content') =>
         h(
@@ -105,38 +105,51 @@ export function createPreviewPanel(ctx, overrides = {}) {
             },
             'Reset'
         );
+     const saveTplBtn = (kind, label) =>
+         h(
+             'button',
+             {
+                 class: 'pc-btn',
+                 type: 'button',
+                 title: `Save ${label} file`,
+                 onclick: () => {
+                     try {
+                         saveArtifact(ctx, kind);
+                     } catch (err) {
+                         console.error(`Failed to save ${label}:`, err);
+                     }
+                 },
+             },
+             `Save ${label}`
+         );
+     const htmlMeta = h('div', {class: 'pc-muted'}, 'Body markup of the preview page (`template html "…"`).');
+     const cssMeta = h('div', {class: 'pc-muted'}, 'CSS appended after the generated --<prefix>* properties (`template css "…"`).');
 
     const panes = {
         preview: h('div', {class: 'pc-pane pc-grow'}, frame),
         html: h(
             'div',
             {class: 'pc-pane pc-grow'},
-            h(
-                'div',
-                {class: 'pc-muted'},
-                'Body markup of the preview page; it ships with the exported guide and harness.'
-            ),
+             htmlMeta,
             htmlTa,
             h(
                 'div',
                 {class: 'pc-row'},
                 copyBtn(() => htmlTa.value, 'HTML'),
+                 saveTplBtn('template-html', 'HTML'),
                 resetBtn(() => themeDoc.patchPreview({html: DEFAULT_PREVIEW_HTML}), 'HTML')
             )
         ),
         css: h(
             'div',
             {class: 'pc-pane pc-grow'},
-            h(
-                'div',
-                {class: 'pc-muted'},
-                'CSS appended after the generated --<prefix>* properties (kebab-cased labels: textMuted → --color-text-muted).'
-            ),
+             cssMeta,
             cssTa,
             h(
                 'div',
                 {class: 'pc-row'},
                 copyBtn(() => cssTa.value, 'CSS'),
+                 saveTplBtn('template-css', 'CSS'),
                 resetBtn(() => themeDoc.patchPreview({css: DEFAULT_PREVIEW_CSS}), 'CSS')
             )
         ),
@@ -185,7 +198,7 @@ export function createPreviewPanel(ctx, overrides = {}) {
     function render() {
         let vars = '';
         try {
-            const opt = cssOptions();
+             const opt = cssOptions(themeDoc.get(), ctx.sketch);
             vars = emitCSS(ctx.sketch, ctx.result, {
                 ...opt,
                 switchMode: ['attribute'],
@@ -220,6 +233,13 @@ export function createPreviewPanel(ctx, overrides = {}) {
     function update() {
         try {
             const scen = ctx.sketch.scenarios ?? [];
+             const tpl = ctx.sketch.extensions?.theme?.template ?? {};
+             htmlMeta.textContent = tpl.html
+                 ? `Template HTML (${tpl.html}) — referenced via \`template html "${tpl.html}"\``
+                 : 'Body markup of the preview page; reference external file via `template html "preview.html"`.';
+             cssMeta.textContent = tpl.css
+                 ? `Template CSS (${tpl.css}) — referenced via \`template css "${tpl.css}"\``
+                 : 'CSS appended after generated --<prefix>* properties; reference via `template css "preview.css"`.';
             themeSel.replaceChildren(...scen.map((s) => h('option', {value: s.id}, s.id)));
             themeSel.value = ctx.activeScenario ?? scen[0]?.id ?? '';
             themeSel.disabled = !scen.length;

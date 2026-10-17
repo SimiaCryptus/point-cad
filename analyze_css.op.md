@@ -1,5 +1,5 @@
 ---
-specifies: theme_design.html
+specifies: theme.tcad
 related:
   - *.css
   - **/*.css
@@ -10,17 +10,12 @@ related:
 **Input.** Every stylesheet matched by `related`. HTML files in the same tree may be
 read for context (which selectors sit on which backgrounds) but are not edited.
 
-**Output.** One HTML file, `index.html`, written next to the stylesheets. It is
-the theme-designer _harness_ (`demo/theme.html`) with its
-`<script type="application/json" id="theme-doc">` block filled in (§2.11): the sketch
-and every handoff field travel inside that one file, so nothing is cut and pasted.
-Opening it in a browser restores the palette, the preview templates, the migration
-guide and the evidence; the designer plays with anchors and rules, presses _Solve
-themes_ and uses the header buttons to regenerate every derived artefact on demand — _Save CSS_
-(`<project>-tokens.css`), _Save guide (.md)_ (`<project>-integration.md`,
-the incorporation instructions addressed to a human or an agent), _Save tokens_, _Save .pcad_, and _Save harness (
-.html)_ (the file itself with the current edits, so it
-remains the source of truth).
+**Output.** Straightforward Point-CAD / Theme-CAD source files written next to the stylesheets:
+
+1. `theme.tcad` (or `<project>.pcad`, MIME type `application/vnd.themecad` / `application/vnd.pointcad`) — the primary constraint script. It declares the colour space, variables, points, constraints, `theme` blocks, and references the template HTML, template CSS, and output CSS files directly via `project`, `template`, and `output` statements.
+2. `preview.html` and `preview.css` — the standalone preview markup and styles referenced by `template html "preview.html"` and `template css "preview.css"` in `theme.tcad`.
+
+The resulting `.tcad` / `.pcad` file can be opened directly in the Theme-CAD PWA either via OS file association (`application/vnd.themecad` / `application/vnd.pointcad`) or via a URL parameter (`index.html?src=./theme.tcad`).
 
 The harness document must contain
 
@@ -311,6 +306,12 @@ The subset of the language the theme designer accepts (see `theme-designer/READM
 space oklab                         # unknowns are [L, a, b]; L in 0..1
 units none deg
 gamut srgb | p3 | off               # auto-adds `gamut P <= 0` for every exported point
+project "My App"                    # project name
+template html "preview.html"        # external preview HTML template
+template css "preview.css"          # external preview CSS template
+output css "tokens.css" prefix "color-" format oklch scope ":root" switching "media,attribute" default dark fallback
+output tokens "tokens.json"
+output guide "integration.md"
 
 var NAME [= NUMBER] [locked] [shared]
 
@@ -673,4 +674,3 @@ a {
   `loaded embedded sketch` line). Escape `"`, `\` and newlines in
   `pcad`, and `</` as `<\/`.
   those in §4; `index.html` must open with no errors in the log.
-

@@ -1,0 +1,325 @@
+# theme.tcad — Mathematical Explorations (Theme-CAD source file)
+# MIME type: application/vnd.themecad (or application/vnd.pointcad)
+# Primary content: colour constraints & theme scenarios.
+# External preview templates and target CSS outputs are referenced directly below.
+space oklab
+units none deg
+gamut srgb
+project "Mathematical Explorations"
+template html "preview.html"
+template css "preview.css"
+output css "mathematical-explorations-tokens.css" prefix "color-" format oklch scope ":root" switching "media,attribute" default dark fallback
+output tokens "mathematical-explorations-tokens.json"
+output guide "mathematical-explorations-integration.md"
+
+# ---- variables ----------------------------------------------------------
+var canvasL     = 0.1547 locked
+var canvasC     = 0.0131 locked
+var canvasH     = 266.2  locked
+var brandL      = 0.704  locked
+var brandC      = 0.137  locked
+var brandH      = 250.7  locked
+var grayL       = 0.60   locked
+var grayC       = 0.015  locked
+var grayH       = 255    locked
+var stepL       = 0.041  locked
+var textL       = 0.936  locked
+var bodyC       = 7      locked
+var mutedC      = 4.5    locked
+var uiC         = 3      locked
+var accent2C    = 0.165  locked
+var hoverStep   = 0.069  locked
+var hoverDC     = -0.029 locked
+var a2HoverStep = -0.026 locked
+var a2HoverDH   = -12    locked
+var a2DH        = 52     locked
+var successDH   = -103   locked
+var warningDH   = 166    locked
+
+# ---- inputs (pinned by the locked variables above) ----------------------
+point canvas     at #0a0d14                derived
+point brand      at #58a6ff                derived
+point coolGray   at oklch(60% 0.015 255)   derived
+L canvas   = canvasL weight 20
+C canvas   = canvasC weight 20
+H canvas   = canvasH weight 20
+L brand    = brandL  weight 20
+C brand    = brandC  weight 20
+H brand    = brandH  weight 20
+L coolGray = grayL   weight 20
+C coolGray = grayC   weight 20
+H coolGray = grayH   weight 20
+
+# ---- outputs (seeds = observed dark-theme values) -----------------------
+point surface1     at #0d1117  derived
+point surface2     at #161b22  derived
+point border       at #30363d  derived
+point text         at #e6edf3  derived
+point textMuted    at #8b949e  derived
+point link         at #58a6ff  derived
+point brandHover   at #79b8ff  derived
+point accent2      at #bc8cff  derived
+point accent2Hover at #a78bff  derived
+point success      at #7ee787  derived
+point warning      at #ffa657  derived
+point highlight    at #ffe1a3  derived
+point onAccent     at #0a0d14  derived
+
+# ---- surfaces: even lightness ramp, canvas hue, one chroma for the ramp --
+dL canvas surface1 = stepL weight 5
+dL surface1 surface2 = stepL weight 5
+lock H canvas surface1 surface2 weight 0.3
+lock C canvas surface1 surface2
+
+# ---- reading family: one hue and chroma, lightness by contrast ---------
+lock H coolGray text textMuted border
+lock C coolGray text textMuted border weight 0.5
+L text = textL weight 20
+contrast text canvas        >= bodyC
+contrast text surface1      >= bodyC
+contrast text surface2      >= bodyC
+contrast textMuted canvas   >= mutedC
+contrast textMuted surface1 >= mutedC
+contrast textMuted surface2 >= mutedC
+contrast border canvas      >= uiC
+
+# ---- links and brand states --------------------------------------------
+lock H brand link
+lock C brand link
+contrast link canvas   >= 4.5
+contrast link surface2 >= 4.5
+distance link brand -> min weight 0.2
+lock H brand brandHover
+dL brand brandHover = hoverStep
+dC brand brandHover = hoverDC
+contrast brandHover canvas   >= 4.5
+contrast brandHover surface2 >= uiC
+
+# ---- violet accent ------------------------------------------------------
+dH brand accent2 = a2DH
+lock L brand accent2 weight 0.3
+C accent2 = accent2C
+contrast accent2 canvas   >= 4.5
+contrast accent2 surface2 >= 4.5
+lock C accent2 accent2Hover
+dL accent2 accent2Hover = a2HoverStep
+dH accent2 accent2Hover = a2HoverDH
+contrast accent2Hover canvas >= 4.5
+
+# ---- status hues --------------------------------------------------------
+dH brand success = successDH
+dH brand warning = warningDH
+lock L success warning weight 0.1
+contrast success canvas   >= 4.5
+contrast warning canvas   >= 4.5
+contrast success surface2 >= 4.5
+contrast warning surface2 >= 4.5
+dH warning highlight = 28
+contrast highlight canvas   >= bodyC
+contrast highlight surface2 >= 4.5
+
+# ---- text on filled controls -------------------------------------------
+lock L canvas onAccent weight 10
+lock C canvas onAccent weight 10
+lock H canvas onAccent weight 10
+contrast onAccent brand        >= 4.5
+contrast onAccent brandHover   >= 4.5
+contrast onAccent accent2      >= 4.5
+contrast onAccent accent2Hover >= 4.5
+contrast onAccent success      >= 4.5
+contrast onAccent warning      >= 4.5
+
+# ---- themes -------------------------------------------------------------
+theme dark {
+  var canvasL     = 0.1547
+  var canvasC     = 0.0131
+  var canvasH     = 266.2
+  var brandL      = 0.704
+  var brandC      = 0.137
+  var brandH      = 250.7
+  var grayL       = 0.60
+  var grayC       = 0.015
+  var grayH       = 255
+  var stepL       = 0.041
+  var textL       = 0.936
+  var hoverStep   = 0.069
+  var hoverDC     = -0.029
+  var a2HoverStep = -0.026
+}
+
+theme light {
+  var canvasL     = 0.985
+  var canvasC     = 0.004
+  var canvasH     = 250
+  var brandL      = 0.50
+  var brandC      = 0.16
+  var brandH      = 252
+  var grayL       = 0.45
+  var grayC       = 0.015
+  var grayH       = 255
+  var stepL       = -0.035
+  var textL       = 0.24
+  var hoverStep   = -0.07
+  var hoverDC     = -0.01
+  var a2HoverStep = -0.05
+  canvas       at oklch(98.5% 0.004 250)
+  brand        at oklch(50% 0.16 252)
+  coolGray     at oklch(45% 0.015 255)
+  surface1     at oklch(95% 0.004 250)
+  surface2     at oklch(91.5% 0.004 250)
+  border       at oklch(63% 0.015 255)
+  text         at oklch(24% 0.015 255)
+  textMuted    at oklch(47% 0.015 255)
+  link         at oklch(50% 0.16 252)
+  brandHover   at oklch(43% 0.15 252)
+  accent2      at oklch(47% 0.165 304)
+  accent2Hover at oklch(42% 0.165 292)
+  success      at oklch(46% 0.14 149)
+  warning      at oklch(47% 0.14 58)
+  highlight    at oklch(42% 0.10 86)
+  onAccent     at oklch(98.5% 0.004 250)
+}
+
+theme dim {
+  var canvasL     = 0.30
+  var canvasC     = 0.014
+  var canvasH     = 200
+  var brandL      = 0.76
+  var brandC      = 0.11
+  var brandH      = 190
+  var grayL       = 0.62
+  var grayC       = 0.012
+  var grayH       = 200
+  var stepL       = 0.03
+  var textL       = 0.89
+  var hoverStep   = 0.06
+  var hoverDC     = -0.02
+  var accent2C    = 0.12
+  var a2DH        = 60
+  var successDH   = -45
+  var warningDH   = -135
+  canvas       at oklch(30% 0.014 200)
+  brand        at oklch(76% 0.11 190)
+  coolGray     at oklch(62% 0.012 200)
+  surface1     at oklch(33% 0.014 200)
+  surface2     at oklch(36% 0.014 200)
+  border       at oklch(58% 0.012 200)
+  text         at oklch(89% 0.012 200)
+  textMuted    at oklch(75% 0.012 200)
+  link         at oklch(76% 0.11 190)
+  brandHover   at oklch(82% 0.09 190)
+  accent2      at oklch(78% 0.12 250)
+  accent2Hover at oklch(75.4% 0.12 238)
+  success      at oklch(80% 0.13 145)
+  warning      at oklch(78% 0.12 55)
+  highlight    at oklch(90% 0.07 83)
+  onAccent     at oklch(30% 0.014 200)
+}
+
+theme midnight {
+  var canvasL     = 0.05
+  var canvasC     = 0.003
+  var canvasH     = 240
+  var brandL      = 0.80
+  var brandC      = 0.13
+  var brandH      = 205
+  var grayL       = 0.60
+  var grayC       = 0.008
+  var grayH       = 220
+  var stepL       = 0.06
+  var textL       = 0.96
+  var hoverStep   = 0.06
+  var hoverDC     = -0.04
+  var accent2C    = 0.13
+  canvas       at oklch(5% 0.003 240)
+  brand        at oklch(80% 0.13 205)
+  coolGray     at oklch(60% 0.008 220)
+  surface1     at oklch(11% 0.003 240)
+  surface2     at oklch(17% 0.003 240)
+  border       at oklch(48% 0.008 220)
+  text         at oklch(96% 0.008 220)
+  textMuted    at oklch(66% 0.008 220)
+  link         at oklch(80% 0.13 205)
+  brandHover   at oklch(86% 0.09 205)
+  accent2      at oklch(78% 0.13 257)
+  accent2Hover at oklch(75.4% 0.13 245)
+  success      at oklch(86% 0.17 102)
+  warning      at oklch(78% 0.13 11)
+  highlight    at oklch(92% 0.075 39)
+  onAccent     at oklch(5% 0.003 240)
+}
+
+theme highContrast {
+  var canvasL     = 0.07
+  var canvasC     = 0.002
+  var canvasH     = 266
+  var brandL      = 0.88
+  var brandC      = 0.16
+  var brandH      = 95
+  var grayL       = 0.78
+  var grayC       = 0.004
+  var grayH       = 255
+  var stepL       = 0.05
+  var textL       = 0.985
+  var hoverStep   = 0.06
+  var hoverDC     = -0.04
+  var mutedC      = 7
+  var uiC         = 4.5
+  var accent2C    = 0.09
+  var a2DH        = -175
+  var successDH   = 50
+  var warningDH   = -45
+  canvas       at oklch(7% 0.002 266)
+  brand        at oklch(88% 0.16 95)
+  coolGray     at oklch(78% 0.004 255)
+  surface1     at oklch(12% 0.002 266)
+  surface2     at oklch(17% 0.002 266)
+  border       at oklch(58% 0.004 255)
+  text         at oklch(98.5% 0.004 255)
+  textMuted    at oklch(78% 0.004 255)
+  link         at oklch(88% 0.16 95)
+  brandHover   at oklch(94% 0.12 95)
+  accent2      at oklch(80% 0.09 280)
+  accent2Hover at oklch(77.4% 0.09 268)
+  success      at oklch(86% 0.15 145)
+  warning      at oklch(84% 0.13 50)
+  highlight    at oklch(94% 0.07 78)
+  onAccent     at oklch(7% 0.002 266)
+}
+
+theme paper {
+  var canvasL     = 0.96
+  var canvasC     = 0.022
+  var canvasH     = 85
+  var brandL      = 0.46
+  var brandC      = 0.13
+  var brandH      = 248
+  var grayL       = 0.42
+  var grayC       = 0.022
+  var grayH       = 70
+  var stepL       = -0.03
+  var textL       = 0.27
+  var hoverStep   = -0.07
+  var hoverDC     = -0.01
+  var a2HoverStep = -0.05
+  canvas       at oklch(96% 0.022 85)
+  brand        at oklch(46% 0.13 248)
+  coolGray     at oklch(42% 0.022 70)
+  surface1     at oklch(93% 0.022 85)
+  surface2     at oklch(90% 0.022 85)
+  border       at oklch(62% 0.022 70)
+  text         at oklch(27% 0.022 70)
+  textMuted    at oklch(46% 0.022 70)
+  link         at oklch(46% 0.13 248)
+  brandHover   at oklch(39% 0.12 248)
+  accent2      at oklch(45% 0.165 300)
+  accent2Hover at oklch(40% 0.165 288)
+  success      at oklch(45% 0.13 145)
+  warning      at oklch(47% 0.13 54)
+  highlight    at oklch(40% 0.10 82)
+  onAccent     at oklch(96% 0.022 85)
+}
+
+solver gauss-newton iterations 500 tolerance 1e-6
+view camera (300, 250, 400) target (0, 0, 200) up (0, 0, 1) perspective
+view grid none show labels axes hide seeds

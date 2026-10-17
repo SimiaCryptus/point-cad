@@ -40,6 +40,7 @@ const TITLES = {
 };
 const DEFAULT_PANELS = 'variables,points,constraints,script,solve';
 const DEFAULT_OPEN = 'constraints,solve';
+const SRC_PARAM_KEYS = ['src', 'url', 'file', 'pcad', 'tcad'];
 
 const splitList = (s) =>
     String(s ?? '')
@@ -147,8 +148,25 @@ export class PointCad extends HTMLElement {
     // ---- lifecycle -------------------------------------------------------
     connectedCallback() {
         if (!this._built) this._build();
-        if (this.hasAttribute('src') && this.getAttribute('src') !== this._loadedSrc)
+         const paramSrc = this._resolveUrlParamSrc();
+         if (paramSrc && paramSrc !== this._loadedSrc) {
+             this._loadSrc(paramSrc);
+         } else if (this.hasAttribute('src') && this.getAttribute('src') !== this._loadedSrc) {
             this._loadSrc(this.getAttribute('src'));
+         }
+     }
+     _resolveUrlParamSrc() {
+         if (typeof location === 'undefined' || !location.search) return null;
+         try {
+             const params = new URLSearchParams(location.search);
+             for (const k of SRC_PARAM_KEYS) {
+                 const v = params.get(k);
+                 if (v && v.trim()) return v.trim();
+             }
+         } catch (err) {
+             console.warn('[PointCad] Could not parse location.search:', err);
+         }
+         return null;
     }
 
     attributeChangedCallback(name, oldValue, value) {
@@ -353,10 +371,20 @@ export class PointCad extends HTMLElement {
     async _loadSrc(url) {
         this._loadedSrc = url;
         try {
-            const resp = await fetch(url);
+             const resp = await fetch(url, {
+                 headers: {
+                     Accept: 'application/vnd.pointcad, application/vnd.themecad, text/x-pcad, text/plain, application/json, */*',
+                 },
+             });
             if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
             const text = await resp.text();
-            const hint = /\.json$/i.test(url) ? 'json' : /\.pcad$/i.test(url) ? 'pcad' : undefined;
+             const ct = (resp.headers.get('content-type') || '').toLowerCase();
+             const hint =
+                 ct.includes('application/json') || /\.json$/i.test(url)
+                     ? 'json'
+                     : ct.includes('pointcad') || ct.includes('themecad') || ct.includes('pcad') || /\.(pcad|tcad)$/i.test(url)
+                         ? 'pcad'
+                         : undefined;
             this.load(text, hint);
         } catch (e) {
             this._error('load', `Could not load '${url}': ${e.message}`);

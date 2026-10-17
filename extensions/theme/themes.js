@@ -3,6 +3,17 @@
 import {registry as defaultRegistry} from '../../core/registry.js';
 import {buildProblem} from '../../core/problem.js';
 import {findScenario} from '../../core/model.js';
+export const POINTCAD_MIME = 'application/vnd.pointcad';
+export const THEMECAD_MIME = 'application/vnd.themecad';
+export const PCAD_TEXT_MIME = 'text/x-pcad';
+export const POINTCAD_MIMES = Object.freeze([
+     POINTCAD_MIME,
+     THEMECAD_MIME,
+     PCAD_TEXT_MIME,
+     'application/x-pointcad',
+     'application/x-themecad',
+]);
+export const POINTCAD_EXTENSIONS = Object.freeze(['.pcad', '.tcad', '.pointcad', '.themecad']);
 
 /** Roles a colour point can take (§3.1). `fixed` feeds the solver, `export` the emitters. */
 export const POINT_ROLES = [
@@ -63,6 +74,173 @@ export const gamutStatement = {
         return mode ? [`gamut ${mode}`] : [];
     },
 };
+const escStr = (s) => String(s ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+function ensureThemeExt(sketch) {
+     if (!sketch.extensions || typeof sketch.extensions !== 'object') sketch.extensions = {};
+     if (!sketch.extensions.theme || typeof sketch.extensions.theme !== 'object') {
+         sketch.extensions.theme = {};
+     }
+     return sketch.extensions.theme;
+}
+function acceptStringOrIdent(parser, what) {
+     if (parser.is('string') || parser.is('ident')) return parser.next().value;
+     return parser.expect('string', undefined, what).value;
+}
+/**
+  * `project "Name"` — sets the project title in the sketch's theme metadata.
+  */
+export const projectStatement = {
+     id: 'project',
+     description: 'project "<name>" — project name for emitted theme artifacts',
+     parse(parser) {
+         parser.next(); // consume 'project'
+         const name = acceptStringOrIdent(parser, 'project name string');
+         const ext = ensureThemeExt(parser.ctx.sketch);
+         ext.project = name;
+         parser.ctx.ops.push({op: 'project', name});
+     },
+     emit(sketch) {
+         const name = sketch.extensions?.theme?.project;
+         return name ? [`project "${escStr(name)}"`] : [];
+     },
+};
+/**
+  * `template "preview.html" [css "preview.css"]` or
+  * `template html "preview.html"` / `template css "preview.css"`
+  * References external HTML/CSS template files from the PCS script.
+  */
+export const templateStatement = {
+     id: 'template',
+     description: 'template [html|css] "<path>" — reference external preview HTML and CSS files',
+     parse(parser) {
+         parser.next(); // consume 'template'
+         const ext = ensureThemeExt(parser.ctx.sketch);
+         if (!ext.template || typeof ext.template !== 'object') ext.template = {};
+         if (parser.is('string')) {
+             ext.template.html = parser.next().value;
+         }
+         while (!parser.atEnd()) {
+             if (parser.acceptIdent('html')) {
+                 ext.template.html = acceptStringOrIdent(parser, 'HTML template path');
+             } else if (parser.acceptIdent('css')) {
+                 ext.template.css = acceptStringOrIdent(parser, 'CSS template path');
+             } else {
+                 break;
+             }
+         }
+         parser.ctx.ops.push({op: 'template', template: {...ext.template}});
+     },
+     emit(sketch) {
+         const tpl = sketch.extensions?.theme?.template;
+         if (!tpl || typeof tpl !== 'object') return [];
+         const lines = [];
+         if (tpl.html) lines.push(`template html "${escStr(tpl.html)}"`);
+         if (tpl.css) lines.push(`template css "${escStr(tpl.css)}"`);
+         return lines;
+     },
+};
+/**
+  * `output [css] "<path>" [tokens "<path>"] [guide "<path>"] [prefix "color-"]
+  *  [format oklch|oklab|rgb|hex] [scope ":root"] [switching "media,attribute"]
+  *  [default <theme>] [fallback]`
+  * Declares output file paths and emitter options directly in PCS syntax.
+  */
+export const outputStatement = {
+     id: 'output',
+     description: 'output [css|tokens|guide] "<path>" [prefix "…"] [format oklch|rgb|hex] [scope ":root"] [switching "…"] [default <theme>] [fallback]',
+     parse(parser) {
+         parser.next(); // consume 'output'
+         const ext = ensureThemeExt(parser.ctx.sketch);
+         if (!ext.output || typeof ext.output !== 'object') ext.output = {};
+         const out = ext.output;
+         if (parser.is('string')) {
+             out.css = parser.next().value;
+         }
+         while (!parser.atEnd()) {
+             if (parser.acceptIdent('css')) {
+                 out.css = acceptStringOrIdent(parser, 'CSS output path');
+             } else if (parser.acceptIdent('tokens')) {
+                 out.tokens = acceptStringOrIdent(parser, 'tokens JSON output path');
+             } else if (parser.acceptIdent('guide') || parser.acceptIdent('md')) {
+                 out.guide = acceptStringOrIdent(parser, 'markdown guide output path');
+             } else if (parser.acceptIdent('prefix')) {
+                 out.prefix = acceptStringOrIdent(parser, 'custom property prefix');
+             } else if (parser.acceptIdent('format')) {
+                 out.format = acceptStringOrIdent(parser, 'color format (oklch, oklab, rgb, hex)');
+             } else if (parser.acceptIdent('scope')) {
+                 out.scope = acceptStringOrIdent(parser, 'CSS selector scope');
+             } else if (parser.acceptIdent('switching') || parser.acceptIdent('switch')) {
+                 const modes = [acceptStringOrIdent(parser, 'switch mode')];
+                 while (parser.accept('punct', ',')) {
+                     modes.push(acceptStringOrIdent(parser, 'switch mode'));
+                 }
+                 out.switchMode = modes.join(',');
+             } else if (parser.acceptIdent('default') || parser.acceptIdent('defaultTheme')) {
+                 out.defaultTheme = acceptStringOrIdent(parser, 'default theme id');
+             } else if (parser.acceptIdent('fallback')) {
+                 if (parser.acceptIdent('off') || parser.acceptIdent('false')) out.fallback = false;
+                 else {
+                     parser.acceptIdent('on') || parser.acceptIdent('true');
+                     out.fallback = true;
+                 }
+             } else {
+                 break;
+             }
+         }
+         parser.ctx.ops.push({op: 'output', output: {...out}});
+     },
+     emit(sketch) {
+         const out = sketch.extensions?.theme?.output;
+         if (!out || typeof out !== 'object') return [];
+         const lines = [];
+         const cssOpts = [];
+         if (out.css) cssOpts.push(`css "${escStr(out.css)}"`);
+         if (out.prefix !== undefined && out.prefix !== 'color-') cssOpts.push(`prefix "${escStr(out.prefix)}"`);
+         if (out.format && out.format !== 'oklch') cssOpts.push(`format ${out.format}`);
+         if (out.scope && out.scope !== ':root') cssOpts.push(`scope "${escStr(out.scope)}"`);
+         if (out.switchMode && out.switchMode !== 'media,attribute') cssOpts.push(`switching "${escStr(out.switchMode)}"`);
+         if (out.defaultTheme) cssOpts.push(`default ${out.defaultTheme}`);
+         if (out.fallback) cssOpts.push('fallback');
+         if (cssOpts.length) {
+             if (!out.css) cssOpts.unshift('css "tokens.css"');
+             lines.push(`output ${cssOpts.join(' ')}`);
+         }
+         if (out.tokens) lines.push(`output tokens "${escStr(out.tokens)}"`);
+         if (out.guide) lines.push(`output guide "${escStr(out.guide)}"`);
+         return lines;
+     },
+};
+export const THEME_STATEMENTS = [
+     themeStatement,
+     gamutStatement,
+     projectStatement,
+     templateStatement,
+     outputStatement,
+];
+/** Read theme metadata (project, template, output) declared in the sketch. */
+export function themeMetadata(sketch) {
+     const t = sketch?.extensions?.theme ?? {};
+     return {
+         project: t.project ?? null,
+         gamut: t.gamut ?? 'off',
+         template: {
+             html: t.template?.html ?? null,
+             css: t.template?.css ?? null,
+         },
+         output: {
+             css: t.output?.css ?? null,
+             tokens: t.output?.tokens ?? null,
+             guide: t.output?.guide ?? null,
+             prefix: t.output?.prefix,
+             format: t.output?.format,
+             scope: t.output?.scope,
+             switchMode: t.output?.switchMode,
+             defaultTheme: t.output?.defaultTheme,
+             fallback: t.output?.fallback,
+         },
+     };
+}
+
 
 export const isExported = (p) => p && p.export !== false;
 export const exportedPoints = (sketch) => (sketch?.points ? sketch.points.filter(isExported) : []);
