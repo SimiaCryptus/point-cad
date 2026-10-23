@@ -631,7 +631,7 @@ a {
 <script type="module">
     // Adjust this single constant if the Point-CAD library lives elsewhere.
     const HARNESS_URL =
-            'https://math.cognotik.com/experiments/point-cad/extensions/theme/ui/harness.js';
+            'https://pcad.cognotik.com/extensions/theme/ui/harness.js';
     try {
         const {bootHarness} = await import(HARNESS_URL);
         await bootHarness(document.getElementById('cad'));
