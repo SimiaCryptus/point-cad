@@ -53,76 +53,27 @@ export function compile(source, options = {}) {
         console.log(`[compile] Starting compilation (${source.length} characters)...`);
     }
 
-    // 1. Lexing / Tokenization
-    let tokens;
-    try {
-        if (isVerbose) {
-            console.log('[compile] Phase 1: Tokenizing source...');
-        }
-        tokens = tokenize(source);
-        if (isVerbose) {
-            console.log(`[compile] Phase 1 complete: ${tokens.length} tokens generated.`);
-        }
-    } catch (err) {
-        if (err instanceof PcsError || (err && 'line' in err)) {
-            console.error(`[compile] Lexer error at line ${err.line}, col ${err.col}: ${err.message}`);
-        } else {
-            console.error(`[compile] Unexpected error during tokenization: ${err.message}`);
-        }
-        throw err;
-    }
 
-    // 2. Macro expansion (optional pre-processing)
-    if (options.expandMacros) {
-        try {
-            if (isVerbose) {
-                console.log('[compile] Phase 1b: Expanding macro tokens...');
-            }
-            tokens = expandMacroTokens(tokens);
-            if (isVerbose) {
-                console.log(`[compile] Phase 1b complete: ${tokens.length} tokens after expansion.`);
-            }
-        } catch (err) {
-            if (err instanceof PcsError || (err && 'line' in err)) {
-                console.error(`[compile] Macro expansion error at line ${err.line}, col ${err.col}: ${err.message}`);
-            } else {
-                console.error(`[compile] Unexpected error during macro expansion: ${err.message}`);
-            }
-            throw err;
-        }
-    }
 
-    // 3. Parsing into AST
+    // 1. Parse (tokenizing and macro expansion happen inside the parser)
     let ast;
     try {
-        if (isVerbose) {
-            console.log('[compile] Phase 2: Parsing tokens into AST...');
+        if (isVerbose) console.log('[compile] Phase 1: Parsing source...');
+        const res = parse(source, options);
+        if (!res.ok) {
+            const first = res.errors[0] ?? {message: 'Unknown parse error', line: 1, col: 1};
+            console.error(`[compile] Parser reported ${res.errors.length} error(s):`, res.errors);
+            throw new PcsError(first.message, first.line, first.col);
         }
-        ast = parse(tokens, options);
-        if (isVerbose) {
-            console.log('[compile] Phase 2 complete: AST generated successfully.');
-        }
+        ast = res.sketch;
+        if (isVerbose) console.log('[compile] Phase 1 complete.');
     } catch (parseErr) {
-        // Fallback if parse implementation expects source string directly
-        if (parseErr instanceof TypeError && parseErr.message && parseErr.message.includes('not a function')) {
-            try {
-                ast = parse(source, options);
-            } catch (innerErr) {
-                if (innerErr instanceof PcsError || (innerErr && 'line' in innerErr)) {
-                    console.error(`[compile] Parser error at line ${innerErr.line}, col ${innerErr.col}: ${innerErr.message}`);
-                } else {
-                    console.error(`[compile] Unexpected error during parsing: ${innerErr.message}`);
-                }
-                throw innerErr;
-            }
+        if (parseErr instanceof PcsError || (parseErr && 'line' in parseErr)) {
+            console.error(`[compile] Parser error at line ${parseErr.line}, col ${parseErr.col}: ${parseErr.message}`);
         } else {
-            if (parseErr instanceof PcsError || (parseErr && 'line' in parseErr)) {
-                console.error(`[compile] Parser error at line ${parseErr.line}, col ${parseErr.col}: ${parseErr.message}`);
-            } else {
-                console.error(`[compile] Unexpected error during parsing: ${parseErr.message}`);
-            }
-            throw parseErr;
+            console.error(`[compile] Unexpected error during parsing: ${parseErr.message}`);
         }
+        throw parseErr;
     }
 
     // 4. Code Generation / Emitting

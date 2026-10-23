@@ -267,7 +267,7 @@ export function emitWithMap(
     );
     const hidden = ['seeds', 'labels', 'axes'].filter((f) => !shown.includes(f));
     add(
-        `view grid ${view.grid ?? 'on'}${shown.length ? ` show ${shown.join(' ')}` : ''}${hidden.length ? ` hide ${hidden.join(' ')}` : ''}`
+        `view grid ${['xy', 'xz', 'yz', 'none'].includes(view.grid) ? view.grid : 'xy'}${shown.length ? ` show ${shown.join(' ')}` : ''}${hidden.length ? ` hide ${hidden.join(' ')}` : ''}`
     );
 
     return {text: lines.join('\n') + '\n', map};

@@ -454,7 +454,7 @@ export class PointCad extends HTMLElement {
             solve: (o) => {
                 try {
                     return self.solve(o);
-                } catch {
+                } catch (err) {
                     console.error('[PointCad] Context solve invocation failed:', err);
                     return null;
                 }

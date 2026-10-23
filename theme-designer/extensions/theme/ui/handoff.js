@@ -276,7 +276,7 @@ const jsonScript = (payload) => JSON.stringify(payload, null, 2).replace(/</g, '
  */
 export function buildHarnessHTML(ctx, d = themeDoc.get()) {
     const boot = new URL('./harness.js', import.meta.url).href;
-    const files = fileNames(d);
+    const files = fileNames(d, ctx.sketch);
     const payload = {
         generator: 'point-cad theme designer',
         generated: new Date().toISOString(),
