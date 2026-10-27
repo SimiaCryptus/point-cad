@@ -1,0 +1,11 @@
+{
+    "id": "pointcad",
+    "title": "Point CAD",
+    "category": "tool",
+    "href": "https://pcad.cognotik.com/",
+    "readme": "README.md",
+    "section": "tools",
+    "icon": "PC",
+    "launchLabel": "Open Point CAD",
+    "pitch": "Point CAD/Theme CAD"
+}
