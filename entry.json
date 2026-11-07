@@ -1,7 +1,7 @@
 {
     "id": "pointcad",
     "title": "Point CAD",
-    "description": "Embeddable parametric 3D point-structure sketcher: labeled points driven by named variables and distance/angle constraints, solved on demand with a pluggable Gauss-Newton solver. Worlds can be built in the 3D viewport or written in PCS, a tiny declarative script language that doubles as the .pcad file format. Ships with Theme CAD, a constraint-based colour theme designer built on the same core.",
+    "pitch": "Embeddable parametric 3D point-structure sketcher: labeled points driven by named variables and distance/angle constraints, solved on demand with a pluggable Gauss-Newton solver. Worlds can be built in the 3D viewport or written in PCS, a tiny declarative script language that doubles as the .pcad file format. Ships with Theme CAD, a constraint-based colour theme designer built on the same core.",
     "tags": [
         "cad",
         "3d",
